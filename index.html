@@ -8,6 +8,9 @@
 <!-- Syntax-highlight theme (one for dark, one for light: I enable one at a time) -->
 <link id="hljs-dark"  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github-dark.min.css" />
 <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github.min.css" disabled />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap">
 
 <!--
   The only "real" dependency: Trystero (WebRTC + serverless signaling + channel encryption).
@@ -26,122 +29,213 @@
 </script>
 
 <style>
+  /* ============ Material Design 3 tokens ============ */
   :root[data-theme="dark"]{
-    --bg:#0f1115; --panel:#171a21; --panel2:#1e2430; --text:#e7eaf0; --muted:#8a93a2;
-    --accent:#4f8cff; --ok:#3fb950; --warn:#e3b341; --border:#2a2f3a; --bubble:#1e2430; --bubble-me:#1f3354;
+    --bg:#141218;                 /* surface */
+    --panel:#1d1b22;              /* surface-container */
+    --panel2:#28262f;             /* surface-container-high */
+    --text:#e6e0e9;               /* on-surface */
+    --muted:#cac4d0;              /* on-surface-variant */
+    --muted2:#938f99;
+    --accent:#d0bcff;             /* primary */
+    --on-accent:#381e72;          /* on-primary */
+    --accent-container:#4f378b;   /* primary-container */
+    --on-accent-container:#eaddff;
+    --secondary-container:#4a4458;
+    --on-secondary-container:#e8def8;
+    --ok:#7ddb8a; --warn:#ffb95c; --error:#f2b8b5;
+    --border:#49454f;             /* outline-variant */
+    --bubble:#28262f; --bubble-me:#4f378b; --on-bubble-me:#eaddff;
+    --shadow1:0 1px 2px rgba(0,0,0,.3),0 1px 3px 1px rgba(0,0,0,.15);
+    --shadow2:0 1px 2px rgba(0,0,0,.3),0 2px 6px 2px rgba(0,0,0,.15);
+    --shadow3:0 4px 8px 3px rgba(0,0,0,.15),0 1px 3px rgba(0,0,0,.3);
+    --scrim:rgba(0,0,0,.55);
   }
   :root[data-theme="light"]{
-    --bg:#f4f6f9; --panel:#ffffff; --panel2:#eef1f6; --text:#161a20; --muted:#5b6573;
-    --accent:#2563eb; --ok:#1a7f37; --warn:#9a6700; --border:#e2e6ec; --bubble:#eef1f6; --bubble-me:#dbeafe;
+    --bg:#fdf7ff;
+    --panel:#f3edf7;
+    --panel2:#e8e0eb;
+    --text:#1d1b20;
+    --muted:#49454f;
+    --muted2:#79747e;
+    --accent:#6750a4;
+    --on-accent:#ffffff;
+    --accent-container:#eaddff;
+    --on-accent-container:#21005d;
+    --secondary-container:#e8def8;
+    --on-secondary-container:#1d192b;
+    --ok:#1a7f37; --warn:#9a6700; --error:#b3261e;
+    --border:#cac4d0;
+    --bubble:#ece6f0; --bubble-me:#eaddff; --on-bubble-me:#21005d;
+    --shadow1:0 1px 2px rgba(0,0,0,.18),0 1px 3px 1px rgba(0,0,0,.08);
+    --shadow2:0 1px 2px rgba(0,0,0,.18),0 2px 6px 2px rgba(0,0,0,.08);
+    --shadow3:0 4px 8px 3px rgba(0,0,0,.1),0 1px 3px rgba(0,0,0,.18);
+    --scrim:rgba(0,0,0,.35);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
     margin:0; background:var(--bg); color:var(--text);
-    font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    -webkit-font-smoothing:antialiased;
+    font:15px/1.5 Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
   }
   button{font:inherit; cursor:pointer}
   a{color:var(--accent)}
   #app{height:100%}
+  ::selection{background:color-mix(in srgb,var(--accent) 35%,transparent)}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:99px; border:2px solid var(--bg)}
+  ::-webkit-scrollbar-track{background:transparent}
+
+  /* state-layer hover/active per MD3 */
+  .btn,.iconbtn,.peer-chip{position:relative; overflow:hidden; transition:box-shadow .2s,background-color .2s,transform .1s}
+  .btn::after,.iconbtn::after{
+    content:""; position:absolute; inset:0; background:currentColor; opacity:0; transition:opacity .15s; pointer-events:none; border-radius:inherit;
+  }
+  .btn:hover::after,.iconbtn:hover::after{opacity:.08}
+  .btn:active::after,.iconbtn:active::after{opacity:.14}
+  .btn:active,.iconbtn:active{transform:scale(.97)}
+  :is(.btn,.iconbtn,input,select,textarea):focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 
   /* ---------- Home screen ---------- */
-  .home{max-width:640px; margin:0 auto; padding:40px 20px; display:flex; flex-direction:column; gap:20px}
-  .brand{display:flex; align-items:center; gap:12px}
-  .brand h1{margin:0; font-size:26px; letter-spacing:.2px}
-  .brand .dot{width:14px; height:14px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 25%,transparent)}
-  .sub{color:var(--muted); margin:-8px 0 4px}
-  .card{background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:18px}
-  .card h3{margin:0 0 10px; font-size:15px}
-  .row{display:flex; gap:10px; flex-wrap:wrap}
+  .home{max-width:680px; margin:0 auto; padding:48px 20px 32px; display:flex; flex-direction:column; gap:18px}
+  .brand{display:flex; align-items:center; gap:14px}
+  .brand h1{margin:0; font-size:32px; font-weight:500; letter-spacing:0}
+  .brand .dot{width:16px; height:16px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 22%,transparent)}
+  .sub{color:var(--muted); margin:-6px 0 4px; font-size:14px}
+  .card{
+    background:var(--panel); border:none; border-radius:24px; padding:22px;
+    box-shadow:var(--shadow1); transition:box-shadow .25s;
+  }
+  .card:hover{box-shadow:var(--shadow2)}
+  .card h3{margin:0 0 8px; font-size:17px; font-weight:500; letter-spacing:.1px}
+  .row{display:flex; gap:12px; flex-wrap:wrap; margin-top:12px}
   .grow{flex:1 1 200px}
   input[type=text],select,textarea{
-    width:100%; background:var(--panel2); color:var(--text); border:1px solid var(--border);
-    border-radius:10px; padding:11px 12px; outline:none;
+    width:100%; background:var(--panel2); color:var(--text); border:1px solid transparent;
+    border-radius:14px; padding:13px 16px; outline:none; font:inherit;
+    transition:border-color .2s, background-color .2s;
   }
-  input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
-  input[type=color]{width:44px; height:44px; padding:0; border:1px solid var(--border); border-radius:10px; background:var(--panel2)}
+  input[type=text]:hover,textarea:hover,select:hover{border-color:var(--border)}
+  input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent); background:color-mix(in srgb,var(--accent) 6%,var(--panel2))}
+  ::placeholder{color:var(--muted2)}
+  input[type=color]{width:48px; height:48px; padding:4px; border:1px solid var(--border); border-radius:14px; background:var(--panel2); cursor:pointer}
   .btn{
-    background:var(--accent); color:#fff; border:0; border-radius:10px; padding:11px 16px; font-weight:600;
+    background:var(--accent); color:var(--on-accent); border:0; border-radius:999px;
+    padding:12px 24px; font-weight:500; letter-spacing:.1px; box-shadow:var(--shadow1);
   }
-  .btn.secondary{background:var(--panel2); color:var(--text); border:1px solid var(--border)}
-  .btn.ghost{background:transparent; color:var(--text); border:1px solid var(--border)}
-  .btn:disabled{opacity:.5; cursor:not-allowed}
-  .features{display:grid; grid-template-columns:1fr 1fr; gap:6px 18px; color:var(--muted); font-size:13px; margin-top:6px}
-  .features li{list-style:none}
-  .foot{text-align:center; padding:4px 0 8px; color:var(--muted); font-size:13px}
-  .foot a{text-decoration:none; font-weight:600}
+  .btn:hover{box-shadow:var(--shadow2)}
+  .btn.secondary{background:var(--secondary-container); color:var(--on-secondary-container); box-shadow:none}
+  .btn.ghost{background:transparent; color:var(--accent); border:1px solid var(--border); box-shadow:none}
+  .btn:disabled{opacity:.4; cursor:not-allowed; box-shadow:none}
+  .features{display:grid; grid-template-columns:1fr 1fr; gap:8px 18px; color:var(--muted); font-size:13px; margin:6px 0 0; padding:0}
+  .features li{list-style:none; display:flex; align-items:center; gap:6px}
+  .foot{text-align:center; padding:8px 0; color:var(--muted); font-size:13px}
+  .foot a{text-decoration:none; font-weight:500; color:var(--accent)}
   .foot a:hover{text-decoration:underline}
 
   /* ---------- Room ---------- */
   chat-room{display:block; height:100%}
   .cc{display:flex; flex-direction:column; height:100%; min-height:0}
   .cc-head{
-    display:flex; align-items:center; gap:10px; padding:10px 14px;
-    background:var(--panel); border-bottom:1px solid var(--border); flex-wrap:wrap;
+    display:flex; align-items:center; gap:10px; padding:12px 16px;
+    background:var(--panel); flex-wrap:wrap; box-shadow:var(--shadow1); position:relative; z-index:3;
   }
-  .cc-head .title{font-weight:700}
+  .cc-head .title{font-weight:500; font-size:17px; letter-spacing:.1px}
   .cc-head .spacer{flex:1}
-  .cc-head .group{display:flex; align-items:center; gap:6px}
-  .cc-head .divider{width:1px; align-self:stretch; min-height:24px; background:var(--border); margin:0 2px}
+  .cc-head .group{display:flex; align-items:center; gap:8px}
+  .cc-head .divider{width:1px; align-self:stretch; min-height:28px; background:var(--border); margin:0 4px}
   @media (max-width:560px){ .cc-head .divider{display:none} }
-  .pill{font-size:12px; color:var(--muted); background:var(--panel2); border:1px solid var(--border); padding:4px 9px; border-radius:999px; white-space:nowrap}
-  .iconbtn{background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:9px; width:38px; height:38px; display:grid; place-items:center; font-size:16px}
-  .iconbtn.on{background:var(--accent); color:#fff; border-color:transparent}
-  .iconbtn.danger.on{background:#d1242f}
+  .pill{
+    font-size:12px; font-weight:500; color:var(--on-secondary-container); background:var(--secondary-container);
+    border:none; padding:5px 12px; border-radius:999px; white-space:nowrap;
+  }
+  .iconbtn{
+    background:transparent; border:none; color:var(--muted); border-radius:50%;
+    width:42px; height:42px; display:grid; place-items:center; font-size:17px;
+  }
+  .iconbtn:hover{background:color-mix(in srgb,var(--text) 8%,transparent); color:var(--text)}
+  .iconbtn.on{background:var(--accent-container); color:var(--on-accent-container)}
+  .iconbtn.danger.on{background:var(--error); color:#fff}
 
-  .cc-peers{display:flex; gap:6px; flex-wrap:wrap; padding:8px 14px; border-bottom:1px solid var(--border); background:var(--panel)}
-  .peer-chip{display:flex; align-items:center; gap:6px; font-size:12px; background:var(--panel2); border:1px solid var(--border); border-radius:999px; padding:3px 9px}
-  .peer-chip .swatch{width:10px; height:10px; border-radius:50%}
+  .cc-peers{display:flex; gap:8px; flex-wrap:wrap; padding:10px 16px; background:var(--panel); position:relative; z-index:2}
+  .peer-chip{
+    display:flex; align-items:center; gap:7px; font-size:12px; font-weight:500;
+    background:transparent; border:1px solid var(--border); border-radius:10px; padding:5px 12px;
+  }
+  .peer-chip:hover{background:color-mix(in srgb,var(--text) 5%,transparent)}
+  .peer-chip .swatch{width:11px; height:11px; border-radius:50%; box-shadow:0 0 0 2px color-mix(in srgb,currentColor 0%,transparent)}
   .peer-chip .vf{font-size:11px}
   .peer-chip .vf.ok{color:var(--ok)} .peer-chip .vf.no{color:var(--warn)}
-  .peer-chip .fp{color:var(--muted); font-family:ui-monospace,monospace; font-size:11px}
+  .peer-chip .fp{color:var(--muted2); font-family:"Roboto Mono",ui-monospace,monospace; font-size:11px}
 
-  .cc-media{display:flex; gap:8px; padding:8px 14px; overflow-x:auto; background:#000a; border-bottom:1px solid var(--border)}
+  .cc-media{display:flex; gap:10px; padding:10px 16px; overflow-x:auto; background:color-mix(in srgb,#000 65%,var(--bg)); position:relative; z-index:1}
   .cc-media:empty{display:none}
-  .vwrap{position:relative; flex:0 0 auto; border-radius:10px; overflow:hidden; background:#000; border:1px solid var(--border)}
+  .vwrap{position:relative; flex:0 0 auto; border-radius:16px; overflow:hidden; background:#000; box-shadow:var(--shadow2)}
   .vwrap video{display:block; width:240px; height:135px; object-fit:cover; background:#000}
   .vwrap.screen video{width:360px; height:203px}
-  .vwrap .lbl{position:absolute; left:6px; bottom:6px; font-size:11px; background:#000a; color:#fff; padding:2px 7px; border-radius:6px}
+  .vwrap .lbl{position:absolute; left:8px; bottom:8px; font-size:11px; font-weight:500; background:rgba(0,0,0,.65); color:#fff; padding:3px 9px; border-radius:999px; backdrop-filter:blur(4px)}
 
-  .cc-log{flex:1; min-height:0; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px}
-  .msg{max-width:78%; align-self:flex-start; background:var(--bubble); border:1px solid var(--border); border-radius:12px; padding:8px 11px}
-  .msg.me{align-self:flex-end; background:var(--bubble-me)}
-  .msg .meta{display:flex; align-items:center; gap:7px; font-size:12px; margin-bottom:3px}
-  .msg .meta .nm{font-weight:700}
-  .msg .meta .ts{color:var(--muted)}
-  .msg .dm{font-size:11px; color:var(--accent); border:1px solid var(--accent); border-radius:6px; padding:0 5px}
+  .cc-log{flex:1; min-height:0; overflow-y:auto; padding:18px 16px; display:flex; flex-direction:column; gap:10px}
+  .msg{
+    max-width:78%; align-self:flex-start; background:var(--bubble); border:none;
+    border-radius:18px 18px 18px 4px; padding:10px 14px; box-shadow:var(--shadow1);
+    animation:msg-in .18s ease-out;
+  }
+  .msg.me{align-self:flex-end; background:var(--bubble-me); color:var(--on-bubble-me); border-radius:18px 18px 4px 18px}
+  @keyframes msg-in{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+  .msg .meta{display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:3px}
+  .msg .meta .nm{font-weight:500}
+  .msg .meta .ts{color:var(--muted2)}
+  .msg.me .meta .ts{color:color-mix(in srgb,var(--on-bubble-me) 65%,transparent)}
+  .msg .dm{font-size:11px; font-weight:500; color:var(--on-accent-container); background:var(--accent-container); border:none; border-radius:999px; padding:1px 8px}
   .msg .body{word-wrap:break-word; overflow-wrap:anywhere}
   .msg .body p{margin:.3em 0}
-  .msg .body pre{background:var(--panel2); padding:10px; border-radius:8px; overflow:auto; border:1px solid var(--border)}
-  .msg .body code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px}
-  .msg .body :not(pre)>code{background:var(--panel2); padding:1px 5px; border-radius:5px}
-  .msg .body img{max-width:100%; border-radius:8px}
-  .sys{align-self:center; color:var(--muted); font-size:12px}
+  .msg .body pre{background:var(--panel2); color:var(--text); padding:12px; border-radius:12px; overflow:auto; border:none}
+  .msg .body code{font-family:"Roboto Mono",ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px}
+  .msg .body :not(pre)>code{background:var(--panel2); color:var(--text); padding:1px 6px; border-radius:6px}
+  .msg .body img{max-width:100%; border-radius:12px}
+  .sys{
+    align-self:center; color:var(--muted); font-size:12px; font-weight:500;
+    background:var(--panel); padding:4px 14px; border-radius:999px;
+  }
 
-  .filecard{display:flex; align-items:center; gap:10px; min-width:240px}
-  .filecard .fi{font-size:22px}
+  .filecard{display:flex; align-items:center; gap:12px; min-width:240px}
+  .filecard .fi{
+    font-size:10px; font-weight:700; letter-spacing:.5px; width:44px; height:44px; display:grid; place-items:center;
+    background:var(--accent-container); color:var(--on-accent-container); border-radius:14px; flex:0 0 auto;
+  }
   .filecard .fmeta{flex:1; min-width:0}
-  .filecard .fname{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .filecard .fsize{font-size:12px; color:var(--muted)}
-  .bar{height:6px; background:var(--panel2); border-radius:99px; overflow:hidden; margin-top:5px}
-  .bar > i{display:block; height:100%; width:0; background:var(--accent); transition:width .15s}
+  .filecard .fname{font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .filecard .fsize{font-size:12px; color:var(--muted2)}
+  .bar{height:5px; background:color-mix(in srgb,var(--accent) 25%,transparent); border-radius:99px; overflow:hidden; margin-top:6px}
+  .bar > i{display:block; height:100%; width:0; background:var(--accent); border-radius:99px; transition:width .15s}
 
-  .typing{padding:0 14px 6px; color:var(--muted); font-size:12px; min-height:18px}
+  .typing{padding:0 16px 6px; color:var(--muted); font-size:12px; min-height:18px; font-style:italic}
 
-  .cc-compose{display:flex; gap:8px; align-items:flex-end; padding:10px 14px; border-top:1px solid var(--border); background:var(--panel)}
-  .cc-compose textarea{flex:1; resize:none; max-height:160px; min-height:44px}
+  .cc-compose{
+    display:flex; gap:10px; align-items:flex-end; padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    background:var(--panel); box-shadow:0 -1px 2px rgba(0,0,0,.12); position:relative; z-index:3;
+  }
+  .cc-compose textarea{flex:1; resize:none; max-height:160px; min-height:48px; border-radius:24px; padding:13px 18px}
   .cc-compose .actions{display:flex; gap:8px; align-items:flex-end}
-  .cc-compose select{width:auto; max-width:160px}
+  .cc-compose select{width:auto; max-width:160px; border-radius:999px; min-height:48px}
+  .cc-compose .btn{min-height:48px}
+  .cc-compose .iconbtn{width:48px; height:48px; background:var(--secondary-container); color:var(--on-secondary-container)}
 
   /* ---------- Settings panel ---------- */
-  dialog{border:1px solid var(--border); border-radius:14px; background:var(--panel); color:var(--text); padding:0; max-width:420px; width:92%}
-  dialog::backdrop{background:#0008}
-  .dlg-h{padding:14px 16px; border-bottom:1px solid var(--border); font-weight:700; display:flex}
-  .dlg-b{padding:16px; display:flex; flex-direction:column; gap:12px}
-  .dlg-f{padding:12px 16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px}
-  label.fld{display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--muted)}
-  .mono{font-family:ui-monospace,monospace}
+  dialog{
+    border:none; border-radius:28px; background:var(--panel); color:var(--text);
+    padding:0; max-width:420px; width:92%; box-shadow:var(--shadow3);
+  }
+  dialog::backdrop{background:var(--scrim)}
+  dialog[open]{animation:dlg-in .2s ease-out}
+  @keyframes dlg-in{from{opacity:0; transform:translateY(12px) scale(.97)}to{opacity:1; transform:none}}
+  .dlg-h{padding:22px 24px 8px; font-weight:500; font-size:22px; display:flex}
+  .dlg-b{padding:14px 24px; display:flex; flex-direction:column; gap:14px}
+  .dlg-f{padding:14px 24px 22px; display:flex; justify-content:flex-end; gap:10px}
+  label.fld{display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:500; color:var(--muted)}
+  .mono{font-family:"Roboto Mono",ui-monospace,monospace}
   .hide{display:none !important}
 </style>
 </head>
@@ -260,12 +354,12 @@ class ChatSession {
     c.innerHTML = ''
     c.classList.add('cc')
 
-    const mic = el('button', { className: 'iconbtn', title: 'Microphone', textContent: '🎤' })
-    const cam = el('button', { className: 'iconbtn', title: 'Camera', textContent: '📷' })
-    const screen = el('button', { className: 'iconbtn', title: 'Share screen', textContent: '🖥️' })
-    const theme = el('button', { className: 'iconbtn', title: 'Theme', textContent: '🌓' })
-    const gear = el('button', { className: 'iconbtn', title: 'Settings', textContent: '⚙️' })
-    const copy = el('button', { className: 'btn secondary', textContent: '🔗 Copy invite' })
+    const mic = el('button', { className: 'iconbtn', title: 'Microphone', textContent: 'Mic' })
+    const cam = el('button', { className: 'iconbtn', title: 'Camera', textContent: 'Cam' })
+    const screen = el('button', { className: 'iconbtn', title: 'Share screen', textContent: 'Scr' })
+    const theme = el('button', { className: 'iconbtn', title: 'Theme', textContent: '◐' })
+    const gear = el('button', { className: 'iconbtn', title: 'Settings', textContent: '⚙' })
+    const copy = el('button', { className: 'btn secondary', textContent: 'Copy invite' })
     const leave = el('button', { className: 'btn ghost', textContent: 'Leave' })
 
     const status = el('span', { className: 'pill', textContent: 'connecting…' })
@@ -273,7 +367,7 @@ class ChatSession {
 
     const divider = () => el('span', { className: 'divider' })
     const head = el('div', { className: 'cc-head' },
-      el('span', { className: 'title', textContent: (this.isPublic ? '# ' : '🔒 ') + this.displayRoomName() }),
+      el('span', { className: 'title', textContent: (this.isPublic ? '# ' : '') + this.displayRoomName() }),
       status,
       el('span', { className: 'spacer' }),
       el('div', { className: 'group' }, mic, cam, screen),  // media
@@ -293,7 +387,7 @@ class ChatSession {
     this.input = ta
     const to = el('select', { title: 'Recipient' })
     this.recipient = to
-    const fileBtn = el('button', { className: 'iconbtn', title: 'Send file', textContent: '📎' })
+    const fileBtn = el('button', { className: 'iconbtn', title: 'Send file', textContent: '+' })
     const fileIn = el('input', { type: 'file', className: 'hide', multiple: true })
     const send = el('button', { className: 'btn', textContent: 'Send' })
 
@@ -305,7 +399,7 @@ class ChatSession {
 
     // UI events
     copy.onclick = async () => {
-      try { await navigator.clipboard.writeText(this.shareUrl); copy.textContent = '✅ Copied'; setTimeout(() => copy.textContent = '🔗 Copy invite', 1500) }
+      try { await navigator.clipboard.writeText(this.shareUrl); copy.textContent = 'Copied'; setTimeout(() => copy.textContent = 'Copy invite', 1500) }
       catch { prompt('Copy the invite link:', this.shareUrl) }
     }
     leave.onclick = () => { location.hash = '' }
@@ -490,8 +584,8 @@ class ChatSession {
   refreshRecipients() {
     const prev = this.recipient.value
     this.recipient.innerHTML = ''
-    this.recipient.append(el('option', { value: 'all', textContent: '👥 Everyone' }))
-    for (const [id, p] of this.peers) this.recipient.append(el('option', { value: id, textContent: '🔒 ' + p.name }))
+    this.recipient.append(el('option', { value: 'all', textContent: 'Everyone' }))
+    for (const [id, p] of this.peers) this.recipient.append(el('option', { value: id, textContent: 'DM · ' + p.name }))
     if ([...this.recipient.options].some(o => o.value === prev)) this.recipient.value = prev
   }
 
@@ -513,7 +607,7 @@ class ChatSession {
         el('span', { className: 'nm', textContent: this.nameOf(peerId), style: `color:${this.colorOf(peerId)}` }),
         el('span', { className: 'ts', textContent: fmtTime(nowTs()) }))
       const card = el('div', { className: 'filecard' },
-        el('span', { className: 'fi', textContent: '📄' }),
+        el('span', { className: 'fi', textContent: 'FILE' }),
         el('div', { className: 'fmeta' },
           el('div', { className: 'fname', textContent: meta.name }),
           el('div', { className: 'fsize', textContent: fmtSize(meta.size) + (mine ? ' · sending…' : ' · receiving…') }),
@@ -576,7 +670,7 @@ class ChatSession {
     const v = el('video', { autoplay: true, playsInline: true, muted })
     v.srcObject = stream
     const wrap = el('div', { className: 'vwrap' + (kind === 'screen' ? ' screen' : '') },
-      v, el('span', { className: 'lbl', textContent: (kind === 'screen' ? '🖥 ' : '') + this.nameOf(peerId) + (muted ? ' (you)' : '') }))
+      v, el('span', { className: 'lbl', textContent: (kind === 'screen' ? 'Screen · ' : '') + this.nameOf(peerId) + (muted ? ' (you)' : '') }))
     wrap.dataset.peer = peerId; wrap.dataset.kind = kind
     this.mediaBar.append(wrap)
   }
@@ -638,12 +732,12 @@ function route() {
 function renderHome() {
   const home = el('div', { className: 'home' })
   home.append(
-    el('div', { className: 'brand' }, el('span', { className: 'dot' }), el('h1', { textContent: '🐇 White Rabbit' })),
-    el('div', { className: 'sub', textContent: 'End-to-end P2P chat, no server, no account. Follow the white rabbit. 🐇' }))
+    el('div', { className: 'brand' }, el('span', { className: 'dot' }), el('h1', { textContent: 'White Rabbit' })),
+    el('div', { className: 'sub', textContent: 'End-to-end P2P chat, no server, no account. Follow the white rabbit.' }))
 
   // private room
   const priv = el('div', { className: 'card' })
-  priv.append(el('h3', { textContent: '🔒 Private room' }),
+  priv.append(el('h3', { textContent: 'Private room' }),
     el('div', { className: 'sub', textContent: 'Random id and key in the link. Share it only with whom you want.' }))
   const privBtn = el('button', { className: 'btn', textContent: 'Create and join' })
   privBtn.onclick = () => { location.hash = `#/p/${uuid()}/${randSecret()}` }
@@ -651,7 +745,7 @@ function renderHome() {
 
   // public room
   const pub = el('div', { className: 'card' })
-  pub.append(el('h3', { textContent: '# Public room' }),
+  pub.append(el('h3', { textContent: 'Public room' }),
     el('div', { className: 'sub', textContent: 'Anyone who types the same name joins (the key is the name).' }))
   const nameIn = el('input', { type: 'text', placeholder: 'e.g. kitchen, project-x…' })
   const pubBtn = el('button', { className: 'btn secondary', textContent: 'Join' })
@@ -662,12 +756,12 @@ function renderHome() {
 
   // identity
   const idc = el('div', { className: 'card' })
-  idc.append(el('h3', { textContent: '👤 You' }))
+  idc.append(el('h3', { textContent: 'You' }))
   const nm = el('input', { type: 'text', value: settings.name })
   const col = el('input', { type: 'color', value: settings.color })
   nm.oninput = () => { settings.name = nm.value.trim() || settings.name; saveSettings() }
   col.oninput = () => { settings.color = col.value; saveSettings() }
-  const themeBtn = el('button', { className: 'btn ghost', textContent: '🌓 Theme' })
+  const themeBtn = el('button', { className: 'btn ghost', textContent: 'Theme' })
   themeBtn.onclick = () => { settings.theme = settings.theme === 'dark' ? 'light' : 'dark'; saveSettings(); applyTheme() }
   idc.append(el('div', { className: 'row' }, el('div', { className: 'grow' }, nm), col, themeBtn),
     el('div', { className: 'sub mono', style: 'margin-top:8px', textContent: 'fingerprint: ' + identity.fingerprint }))
