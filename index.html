@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>White Rabbit (Zen) — persistent P2P chat</title>
+<link rel="icon" href="favicon.svg">
+<!-- Syntax-highlight theme (one for dark, one for light: I enable one at a time) -->
+<link id="hljs-dark"  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github-dark.min.css" />
+<link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github.min.css" disabled />
+
+<!--
+  Two dependencies now:
+   - Trystero (WebRTC): serverless transport for LIVE chat + audio/video/screen.
+   - Zen (@akaoio/zen): offline-first graph DB. Persists messages locally so the
+     history survives a reload (CRDT under the hood; no relay needed for local).
+  marked + dompurify + highlight.js only render markdown safely.
+-->
+<script type="importmap">
+{
+  "imports": {
+    "trystero/torrent": "https://esm.sh/trystero@0.21.5/torrent",
+    "@akaoio/zen": "https://cdn.jsdelivr.net/npm/@akaoio/zen/zen.min.js",
+    "marked": "https://esm.sh/marked@12.0.2",
+    "dompurify": "https://esm.sh/dompurify@3.1.6",
+    "highlight.js": "https://esm.sh/highlight.js@11.10.0/lib/common"
+  }
+}
+</script>
+
+<style>
+  :root[data-theme="dark"]{
+    --bg:#0d0f14; --panel:#161922; --panel2:#1d2230; --text:#e7eaf0; --muted:#8a93a2;
+    --accent:#5b94ff; --accent2:#7c6cff; --ok:#3fb950; --warn:#e3b341; --border:#262c39;
+    --bubble:#1d2230; --bubble-me:#1d3157; --shadow:0 8px 30px rgba(0,0,0,.45);
+  }
+  :root[data-theme="light"]{
+    --bg:#f1f4f9; --panel:#ffffff; --panel2:#eef1f6; --text:#141821; --muted:#5b6573;
+    --accent:#2563eb; --accent2:#6d4aff; --ok:#1a7f37; --warn:#9a6700; --border:#e2e6ec;
+    --bubble:#f1f4f9; --bubble-me:#dbeafe; --shadow:0 8px 30px rgba(20,30,60,.10);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  button{font:inherit; cursor:pointer}
+  a{color:var(--accent)}
+  #app{height:100%}
+  svg{display:block}
+  .ico{width:18px; height:18px; stroke:currentColor; stroke-width:2; fill:none; stroke-linecap:round; stroke-linejoin:round}
+  /* scrollbars */
+  *{scrollbar-width:thin; scrollbar-color:var(--border) transparent}
+  *::-webkit-scrollbar{width:10px; height:10px}
+  *::-webkit-scrollbar-thumb{background:var(--border); border-radius:99px; border:2px solid transparent; background-clip:padding-box}
+  *::-webkit-scrollbar-thumb:hover{background:var(--muted); background-clip:padding-box}
+
+  /* ---------- Home screen ---------- */
+  .home{max-width:640px; margin:0 auto; padding:48px 20px; display:flex; flex-direction:column; gap:18px}
+  .brand{display:flex; align-items:center; gap:13px}
+  .brand .logo{width:42px; height:42px; display:grid; place-items:center; border-radius:13px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; box-shadow:var(--shadow)}
+  .brand .logo .ico{width:24px; height:24px}
+  .brand h1{margin:0; font-size:27px; letter-spacing:-.4px; font-weight:700}
+  .brand .dot{width:14px; height:14px; border-radius:50%; background:var(--accent)}
+  .sub{color:var(--muted); margin:-6px 0 2px}
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:20px;
+    box-shadow:var(--shadow)}
+  .card h3{margin:0 0 6px; font-size:15px; display:flex; align-items:center; gap:8px}
+  .card h3 .ico{width:17px; height:17px; color:var(--accent)}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .grow{flex:1 1 200px}
+  input[type=text],select,textarea{
+    width:100%; background:var(--panel2); color:var(--text); border:1px solid var(--border);
+    border-radius:10px; padding:11px 12px; outline:none; transition:border-color .15s, box-shadow .15s;
+  }
+  input[type=text]:focus,textarea:focus,select:focus{
+    border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)
+  }
+  input[type=color]{width:44px; height:44px; padding:0; border:1px solid var(--border); border-radius:10px; background:var(--panel2); cursor:pointer}
+  .btn{
+    display:inline-flex; align-items:center; gap:7px; justify-content:center;
+    background:var(--accent); color:#fff; border:0; border-radius:10px; padding:11px 16px; font-weight:600;
+    transition:transform .08s, filter .15s, background .15s; white-space:nowrap;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn:active{transform:translateY(1px)}
+  .btn .ico{width:16px; height:16px}
+  .btn.secondary{background:var(--panel2); color:var(--text); border:1px solid var(--border)}
+  .btn.secondary:hover{border-color:var(--accent); filter:none}
+  .btn.ghost{background:transparent; color:var(--text); border:1px solid var(--border)}
+  .btn.ghost:hover{border-color:var(--accent); filter:none}
+  .btn:disabled{opacity:.5; cursor:not-allowed}
+  .features{display:grid; grid-template-columns:1fr 1fr; gap:9px 18px; color:var(--muted); font-size:13px; margin-top:8px}
+  .features li{list-style:none; display:flex; align-items:center; gap:8px}
+  .features li .ico{width:15px; height:15px; color:var(--ok); flex:0 0 auto}
+  .foot{text-align:center; padding:4px 0 8px; color:var(--muted); font-size:13px}
+  .foot a{display:inline-flex; align-items:center; gap:7px; text-decoration:none; font-weight:600}
+  .foot a:hover{text-decoration:underline}
+  .foot a .ico{width:15px; height:15px}
+
+  /* ---------- Room ---------- */
+  chat-room{display:block; height:100%}
+  .cc{display:flex; flex-direction:column; height:100%; min-height:0}
+  .cc-head{
+    display:flex; align-items:center; gap:10px; padding:10px 14px;
+    background:var(--panel); border-bottom:1px solid var(--border); flex-wrap:wrap;
+  }
+  .cc-head .title{font-weight:700; display:flex; align-items:center; gap:7px}
+  .cc-head .title .ico{width:16px; height:16px; color:var(--muted)}
+  .cc-head .spacer{flex:1}
+  .cc-head .group{display:flex; align-items:center; gap:6px}
+  .cc-head .divider{width:1px; align-self:stretch; min-height:24px; background:var(--border); margin:0 2px}
+  @media (max-width:560px){ .cc-head .divider{display:none} }
+  .pill{display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--muted); background:var(--panel2); border:1px solid var(--border); padding:4px 10px; border-radius:999px; white-space:nowrap}
+  .pill .ico{width:13px; height:13px}
+  .pill .dot{width:7px; height:7px; border-radius:50%; background:var(--muted)}
+  .pill.live .dot{background:var(--ok); box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 30%,transparent)}
+  .iconbtn{background:var(--panel2); border:1px solid var(--border); color:var(--text); border-radius:10px; width:38px; height:38px; display:grid; place-items:center; transition:background .15s, border-color .15s, color .15s}
+  .iconbtn:hover{border-color:var(--accent); color:var(--accent)}
+  .iconbtn.on{background:var(--accent); color:#fff; border-color:transparent}
+  .iconbtn.on:hover{color:#fff; filter:brightness(1.08)}
+  .iconbtn.danger.on{background:#d1242f}
+
+  .cc-peers{display:flex; gap:6px; flex-wrap:wrap; padding:8px 14px; border-bottom:1px solid var(--border); background:var(--panel)}
+  .peer-chip{display:flex; align-items:center; gap:6px; font-size:12px; background:var(--panel2); border:1px solid var(--border); border-radius:999px; padding:3px 9px}
+  .peer-chip .swatch{width:10px; height:10px; border-radius:50%}
+  .peer-chip .vf{display:inline-flex; align-items:center}
+  .peer-chip .vf .ico{width:13px; height:13px}
+  .peer-chip .vf.ok{color:var(--ok)} .peer-chip .vf.no{color:var(--warn)}
+  .peer-chip .fp{color:var(--muted); font-family:ui-monospace,monospace; font-size:11px}
+
+  .cc-media{display:flex; gap:8px; padding:8px 14px; overflow-x:auto; background:#000a; border-bottom:1px solid var(--border)}
+  .cc-media:empty{display:none}
+  .vwrap{position:relative; flex:0 0 auto; border-radius:10px; overflow:hidden; background:#000; border:1px solid var(--border)}
+  .vwrap video{display:block; width:240px; height:135px; object-fit:cover; background:#000}
+  .vwrap.screen video{width:360px; height:203px}
+  .vwrap .lbl{position:absolute; left:6px; bottom:6px; font-size:11px; background:#000a; color:#fff; padding:3px 8px; border-radius:6px; display:flex; align-items:center; gap:5px}
+  .vwrap .lbl .ico{width:12px; height:12px}
+
+  .cc-log{flex:1; min-height:0; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px}
+  .msg{max-width:78%; align-self:flex-start; background:var(--bubble); border:1px solid var(--border); border-radius:14px 14px 14px 4px; padding:8px 12px; box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .msg.me{align-self:flex-end; background:var(--bubble-me); border-radius:14px 14px 4px 14px}
+  .msg .meta{display:flex; align-items:center; gap:7px; font-size:12px; margin-bottom:3px}
+  .msg .meta .nm{font-weight:700}
+  .msg .meta .ts{color:var(--muted)}
+  .msg .dm{font-size:11px; color:var(--accent); border:1px solid var(--accent); border-radius:6px; padding:0 5px}
+  .msg .body{word-wrap:break-word; overflow-wrap:anywhere}
+  .msg .body p{margin:.3em 0}
+  .msg .body pre{background:var(--panel2); padding:10px; border-radius:8px; overflow:auto; border:1px solid var(--border)}
+  .msg .body code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px}
+  .msg .body :not(pre)>code{background:var(--panel2); padding:1px 5px; border-radius:5px}
+  .msg .body img{max-width:100%; border-radius:8px}
+  .sys{align-self:center; color:var(--muted); font-size:12px}
+
+  .filecard{display:flex; align-items:center; gap:11px; min-width:240px}
+  .filecard .fi{flex:0 0 auto; width:38px; height:38px; display:grid; place-items:center; border-radius:9px; background:var(--panel2); color:var(--accent)}
+  .filecard .fi .ico{width:20px; height:20px}
+  .filecard .dl{display:inline-flex; align-items:center; gap:6px; font-weight:600; margin-top:6px; text-decoration:none}
+  .filecard .dl .ico{width:15px; height:15px}
+  .filecard .fmeta{flex:1; min-width:0}
+  .filecard .fname{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .filecard .fsize{font-size:12px; color:var(--muted)}
+  .bar{height:6px; background:var(--panel2); border-radius:99px; overflow:hidden; margin-top:5px}
+  .bar > i{display:block; height:100%; width:0; background:var(--accent); transition:width .15s}
+
+  .typing{padding:0 14px 6px; color:var(--muted); font-size:12px; min-height:18px}
+
+  .cc-compose{display:flex; gap:8px; align-items:flex-end; padding:10px 14px; border-top:1px solid var(--border); background:var(--panel)}
+  .cc-compose textarea{flex:1; resize:none; max-height:160px; min-height:44px}
+  .cc-compose .actions{display:flex; gap:8px; align-items:flex-end}
+  .cc-compose select{width:auto; max-width:160px}
+
+  /* ---------- Settings panel ---------- */
+  dialog{border:1px solid var(--border); border-radius:14px; background:var(--panel); color:var(--text); padding:0; max-width:420px; width:92%}
+  dialog::backdrop{background:#0008}
+  .dlg-h{padding:14px 16px; border-bottom:1px solid var(--border); font-weight:700; display:flex}
+  .dlg-b{padding:16px; display:flex; flex-direction:column; gap:12px}
+  .dlg-f{padding:12px 16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px}
+  label.fld{display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--muted)}
+  .mono{font-family:ui-monospace,monospace}
+  .hide{display:none !important}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script type="module">
+import { joinRoom, selfId } from 'trystero/torrent'
+import ZEN from '@akaoio/zen'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
+import hljs from 'highlight.js'
+
+/* =======================================================================
+   White Rabbit — minimal P2P chat (single-file, zero build), a Chitchatter clone
+   Features: multi-peer chat, DM, markdown+syntax-highlight, history
+   backfill, audio/video, screen sharing, livestream, encrypted file sending,
+   public/private rooms, E2E (WebRTC + password), peer verification via
+   public-key cryptography, no persistence, themes, <chat-room/>.
+   ======================================================================= */
+
+const APP_ID = 'white-rabbit-p2p-v1'             // global namespace on the trackers
+const ZEN_RELAY = 'wss://delay.scobrudot.dev/zen' // Zen relay: CRDT history sync across devices
+const enc = new TextEncoder()
+
+/* ---- Zen crypto identity (sign every message) ----
+   A Zen keypair, persisted in localStorage so the identity is stable across
+   reloads. We sign a canonical form of each message; receivers verify it. */
+let zen0                                          // shared ZEN instance for crypto ops
+const zenCrypto = () => (zen0 || (zen0 = new ZEN({ file: 'wr-id' })))
+let zenPair, zenPub
+async function initZenId() {
+  try { zenPair = JSON.parse(localStorage.getItem('whiterabbit.zenpair') || 'null') } catch {}
+  if (!zenPair || !zenPair.pub) {
+    zenPair = await zenCrypto().pair()
+    localStorage.setItem('whiterabbit.zenpair', JSON.stringify(zenPair))
+  }
+  zenPub = zenPair.pub
+}
+// canonical string signed/verified for a message (order + separators fixed)
+const msgCanon = m => [m.id, m.authorId, m.ts, m.dm ? 1 : 0, m.to || '', m.text].join('')
+
+/* ---------------- basic helpers ---------------- */
+const $ = (sel, root = document) => root.querySelector(sel)
+const el = (tag, props = {}, ...kids) => {
+  const n = Object.assign(document.createElement(tag), props)
+  for (const k of kids) n.append(k)
+  return n
+}
+const uuid = () => crypto.randomUUID()
+const nowTs = () => Date.now()
+
+/* ---------------- inline SVG icons (no emoji) ----------------
+   Feather-style 24x24 stroke paths; `.ico` styling lives in CSS. */
+const ICONS = {
+  mic: '<path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4M8 22h8"/>',
+  cam: '<path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
+  screen: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  theme: '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.5 5.5 0 0 1-7.54-7.54C12.92 3.04 12.46 3 12 3z"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  check: '<path d="M20 6L9 17l-5-5"/>',
+  store: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+  lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  hash: '<path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/>',
+  file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+  paperclip: '<path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>',
+  send: '<path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>',
+  users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  alert: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/>',
+  star: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',
+  rabbit: '<path d="M13 16a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3c0-2 2-3.5 3-5 .5-2 1-4 3-4 1 0 2 1 2 3M8.5 7.5C7 5 6 2.5 7.5 2c1 .5 2 2 2.5 4M14 16h2a3 3 0 0 0 3-3c0-2-1-3-3-4-1-.5-2-1-2-2"/><circle cx="9" cy="13" r=".6" fill="currentColor"/>',
+}
+// SVG element for inserting into the DOM
+const ico = name => {
+  const w = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  w.setAttribute('viewBox', '0 0 24 24'); w.setAttribute('class', 'ico'); w.innerHTML = ICONS[name] || ''
+  return w
+}
+// raw SVG markup string (for innerHTML contexts)
+const icoStr = name => `<svg viewBox="0 0 24 24" class="ico">${ICONS[name] || ''}</svg>`
+const fmtTime = t => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB'
+  : b < 1073741824 ? (b / 1048576).toFixed(1) + ' MB' : (b / 1073741824).toFixed(2) + ' GB'
+const b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)))
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0))
+const randSecret = () => b64(crypto.getRandomValues(new Uint8Array(24))).replace(/[+/=]/g, m => ({ '+': '-', '/': '_', '=': '' }[m]))
+async function sha256hex(buf) {
+  const h = await crypto.subtle.digest('SHA-256', buf)
+  return [...new Uint8Array(h)].map(x => x.toString(16).padStart(2, '0')).join('')
+}
+
+/* ---------------- identity + public-key verification ----------------
+   We generate an ECDSA P-256 key pair per session. We sign our own selfId
+   and send (public key + signature). Others verify that whoever claims
+   `peerId` actually owns the private key: impossible to forge without the
+   key, and copying someone else's meta fails (signature on a different selfId). */
+let identity
+async function initIdentity() {
+  const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify'])
+  const pubJwk = await crypto.subtle.exportKey('jwk', kp.publicKey)
+  const raw = await crypto.subtle.exportKey('raw', kp.publicKey)
+  const sig = b64(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, kp.privateKey, enc.encode(selfId)))
+  identity = { pubJwk, sig, fingerprint: (await sha256hex(raw)).slice(0, 16) }
+}
+async function verifyPeer(peerId, pubJwk, sig) {
+  try {
+    const key = await crypto.subtle.importKey('jwk', pubJwk, { name: 'ECDSA', namedCurve: 'P-256' }, true, ['verify'])
+    const ok = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, unb64(sig), enc.encode(peerId))
+    const raw = await crypto.subtle.exportKey('raw', key)
+    return { ok, fingerprint: (await sha256hex(raw)).slice(0, 16) }
+  } catch { return { ok: false, fingerprint: '????????????????' } }
+}
+
+/* ---------------- user settings (the only things persisted) ---------------- */
+const settings = loadSettings()
+function loadSettings() {
+  let s = {}
+  try { s = JSON.parse(localStorage.getItem('whiterabbit.settings') || '{}') } catch {}
+  return {
+    name: s.name || 'Anon-' + selfId.slice(0, 4),
+    color: s.color || '#' + ((Math.abs([...selfId].reduce((a, c) => a * 33 + c.charCodeAt(0), 7)) % 0xffffff) | 0x404040).toString(16).padStart(6, '0').slice(0, 6),
+    theme: s.theme || 'dark',
+  }
+}
+function saveSettings() { localStorage.setItem('whiterabbit.settings', JSON.stringify(settings)) }
+function applyTheme() {
+  document.documentElement.dataset.theme = settings.theme
+  $('#hljs-dark').disabled = settings.theme !== 'dark'
+  $('#hljs-light').disabled = settings.theme === 'dark'
+}
+
+/* ---------------- safe markdown + syntax highlight ----------------
+   Messages are NEVER persisted to disk. They are rendered as
+   markdown (gfm), sanitized with DOMPurify, and code blocks highlighted. */
+function renderMarkdownInto(node, text) {
+  node.innerHTML = DOMPurify.sanitize(marked.parse(text, { breaks: true, gfm: true }))
+  node.querySelectorAll('pre code').forEach(b => { try { hljs.highlightElement(b) } catch {} })
+}
+
+/* =======================================================================
+   ChatSession — all the logic of a room, mounted into a container.
+   Used both by the main page and by the <chat-room> web component.
+   ======================================================================= */
+class ChatSession {
+  constructor(container, { roomId, secret, isPublic, shareUrl }) {
+    this.container = container
+    this.roomId = roomId
+    this.shareUrl = shareUrl
+    this.isPublic = isPublic
+    this.peers = new Map()            // peerId -> {name,color,verified,fingerprint}
+    this.messages = []                // solo in memoria
+    this.seen = new Set()             // dedup backfill
+    this.localStream = null
+    this.screenStream = null
+    this.typingTimer = null
+    this.typingPeers = new Set()
+    this._snap = {}                   // offline author name/color snapshots (from store)
+    this.buildUI()
+    this.initStore()                  // Zen: load persisted history + enable persistence
+    this.connect(secret)
+  }
+
+  /* ---------- UI ---------- */
+  buildUI() {
+    const c = this.container
+    c.innerHTML = ''
+    c.classList.add('cc')
+
+    const iconBtn = (name, title) => { const b = el('button', { className: 'iconbtn', title }); b.append(ico(name)); return b }
+    const mic = iconBtn('mic', 'Microphone')
+    const cam = iconBtn('cam', 'Camera')
+    const screen = iconBtn('screen', 'Share screen')
+    const theme = iconBtn('theme', 'Theme')
+    const gear = iconBtn('gear', 'Settings')
+    const copy = el('button', { className: 'btn secondary' }); copy.append(ico('link'), el('span', { textContent: 'Copy invite' }))
+    const leave = el('button', { className: 'btn ghost', textContent: 'Leave' })
+
+    const status = el('span', { className: 'pill' }); this.statusPill = status
+    status.append(el('span', { className: 'dot' }), el('span', { className: 'lbl', textContent: 'connecting…' }))
+    const storePill = el('span', { className: 'pill', title: 'Persistent Zen store' }); this.storePill = storePill
+    storePill.append(ico('store'), el('span', { className: 'lbl', textContent: '…' }))
+
+    const divider = () => el('span', { className: 'divider' })
+    const title = el('span', { className: 'title' })
+    title.append(ico(this.isPublic ? 'hash' : 'lock'), el('span', { textContent: this.displayRoomName() }))
+    const head = el('div', { className: 'cc-head' },
+      title,
+      status,
+      storePill,
+      el('span', { className: 'spacer' }),
+      el('div', { className: 'group' }, mic, cam, screen),  // media
+      divider(),
+      el('div', { className: 'group' }, copy),              // room sharing
+      divider(),
+      el('div', { className: 'group' }, theme, gear),       // preferences
+      divider(),
+      el('div', { className: 'group' }, leave))             // leave
+
+    this.peersBar = el('div', { className: 'cc-peers' })
+    this.mediaBar = el('div', { className: 'cc-media' })
+    this.log = el('div', { className: 'cc-log' })
+    this.typingEl = el('div', { className: 'typing' })
+
+    const ta = el('textarea', { placeholder: 'Message… (Markdown · Enter to send, Shift+Enter = new line)', rows: 1 })
+    this.input = ta
+    const to = el('select', { title: 'Recipient' })
+    this.recipient = to
+    const fileBtn = iconBtn('paperclip', 'Send file')
+    const fileIn = el('input', { type: 'file', className: 'hide', multiple: true })
+    const send = el('button', { className: 'btn' }); send.append(ico('send'), el('span', { textContent: 'Send' }))
+
+    const compose = el('div', { className: 'cc-compose' },
+      ta,
+      el('div', { className: 'actions' }, to, fileBtn, fileIn, send))
+
+    c.append(head, this.peersBar, this.mediaBar, this.log, this.typingEl, compose)
+
+    // UI events
+    copy.onclick = async () => {
+      const reset = () => { copy.innerHTML = ''; copy.append(ico('link'), el('span', { textContent: 'Copy invite' })) }
+      try {
+        await navigator.clipboard.writeText(this.shareUrl)
+        copy.innerHTML = ''; copy.append(ico('check'), el('span', { textContent: 'Copied' }))
+        setTimeout(reset, 1500)
+      } catch { prompt('Copy the invite link:', this.shareUrl) }
+    }
+    leave.onclick = () => { location.hash = '' }
+    theme.onclick = () => { settings.theme = settings.theme === 'dark' ? 'light' : 'dark'; saveSettings(); applyTheme() }
+    gear.onclick = () => openSettings()
+    mic.onclick = () => this.toggleUserMedia('audio', mic)
+    cam.onclick = () => this.toggleUserMedia('video', cam)
+    screen.onclick = () => this.toggleScreen(screen)
+    fileBtn.onclick = () => fileIn.click()
+    fileIn.onchange = () => { [...fileIn.files].forEach(f => this.shareFile(f)); fileIn.value = '' }
+    send.onclick = () => this.sendCurrent()
+    ta.addEventListener('input', () => { this.autosize(); this.notifyTyping() })
+    ta.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.sendCurrent() }
+    })
+    this.refreshRecipients()
+    this.renderPeers()
+  }
+  displayRoomName() {
+    return this.isPublic ? decodeURIComponent(this.roomId) : 'private room'
+  }
+  autosize() { const t = this.input; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 160) + 'px' }
+
+  /* ---------- Trystero connection ---------- */
+  connect(secret) {
+    // password = secret -> encrypts the session descriptions on the signaling channel (E2E).
+    const room = joinRoom({ appId: APP_ID, password: secret }, this.roomId)
+    this.room = room
+
+    // actions (names <=12 bytes as Trystero requires)
+    const [sendMsg, getMsg] = room.makeAction('msg')
+    const [sendMeta, getMeta] = room.makeAction('meta')
+    const [sendHist, getHist] = room.makeAction('hist')
+    const [sendTyp, getTyp] = room.makeAction('typ')
+    const [sendFile, getFile, onFileProgress] = room.makeAction('file')
+    this._sendMsg = sendMsg; this._sendMeta = sendMeta; this._sendTyp = sendTyp; this._sendFile = sendFile
+
+    const myMeta = () => ({ name: settings.name, color: settings.color, pubJwk: identity.pubJwk, sig: identity.sig })
+
+    room.onPeerJoin(async peerId => {
+      this.addSystem(`${this.nameOf(peerId)} joined`)
+      sendMeta(myMeta(), peerId)                       // introduce yourself to the newcomer
+      // backfill: send the in-memory history to the new peer (they deduplicate)
+      if (this.messages.length) setTimeout(() => sendHist(this.messages.slice(-200), peerId), 700)
+      this.refreshRecipients(); this.updateStatus()
+    })
+    room.onPeerLeave(peerId => {
+      const nm = this.nameOf(peerId)
+      this.peers.delete(peerId); this.typingPeers.delete(peerId)
+      this.addSystem(`${nm} left`); this.renderPeers(); this.refreshRecipients(); this.renderTyping(); this.updateStatus()
+      // remove their videos
+      this.mediaBar.querySelectorAll(`[data-peer="${CSS.escape(peerId)}"]`).forEach(n => n.remove())
+    })
+
+    getMeta(async (m, peerId) => {
+      const v = await verifyPeer(peerId, m.pubJwk, m.sig)
+      this.peers.set(peerId, { name: m.name || 'Anon', color: m.color || '#888', verified: v.ok, fingerprint: v.fingerprint })
+      this.renderPeers(); this.refreshRecipients()
+    })
+
+    getMsg((data, peerId) => this.addMessage({ ...data, authorId: peerId }, false))
+
+    getHist((list, peerId) => {
+      for (const m of list) this.addMessage({ ...m, authorId: m.authorId || peerId }, false, true)
+    })
+
+    getTyp((isTyping, peerId) => {
+      if (isTyping) this.typingPeers.add(peerId); else this.typingPeers.delete(peerId)
+      this.renderTyping()
+    })
+
+    // incoming file: progress creates/updates the card, getFile completes it
+    onFileProgress((pct, peerId, meta) => this.upsertFileBubble(meta, peerId, false, pct))
+    getFile((bytes, peerId, meta) => {
+      const blob = new Blob([bytes], { type: meta.type || 'application/octet-stream' })
+      this.completeFileBubble(meta, peerId, URL.createObjectURL(blob))
+    })
+
+    // incoming streams (camera/screen)
+    room.onPeerStream((stream, peerId, meta) => this.addVideo(peerId, stream, (meta && meta.kind) || 'cam'))
+
+    // first announce + status
+    sendMeta(myMeta())
+    this.updateStatus()
+    // if we stay alone for a while, let the user know
+    setTimeout(() => { if (!this.peers.size) this.setStatus('waiting for peers…', false) }, 2500)
+  }
+
+  setStatus(text, live) {
+    this.statusPill.classList.toggle('live', !!live)
+    const lbl = $('.lbl', this.statusPill); if (lbl) lbl.textContent = text
+  }
+  updateStatus() {
+    const n = this.peers.size
+    this.setStatus(n ? `${n + 1} online` : 'waiting for peers…', n > 0)
+  }
+  nameOf(peerId) { return peerId === selfId ? settings.name : (this.peers.get(peerId)?.name || this._snap[peerId]?.name || 'Anon-' + peerId.slice(0, 4)) }
+  colorOf(peerId) { return peerId === selfId ? settings.color : (this.peers.get(peerId)?.color || this._snap[peerId]?.color || '#888') }
+
+  /* re-broadcast identity if I change name/color from settings */
+  updateIdentity() {
+    if (this._sendMeta) this._sendMeta({ name: settings.name, color: settings.color, pubJwk: identity.pubJwk, sig: identity.sig })
+    this.renderPeers()
+  }
+
+  /* ---------- Zen persistence ----------
+     Trystero is the live transport; Zen is the durable local graph.
+     One store per room (keyed by roomId). On boot we replay the persisted
+     collection; every new message (sent or received) is written back. */
+  initStore() {
+    try {
+      this.db = new ZEN({ peers: ZEN_RELAY ,file: 'wr-room-' + this.roomId })
+      $('.lbl', this.storePill).textContent = 'saved'
+      // map().on fires once per existing item (history) and again on each local put()
+      this.db.get('messages').map().on((m, id) => {
+        if (!m || !m.id || this.seen.has(m.id)) return
+        // remember the author's name/color so old messages render even if that peer is offline
+        if (m.authorId && m.authorId !== selfId && !this.peers.has(m.authorId))
+          this._snap[m.authorId] = { name: m.name, color: m.color }
+        this.addMessage({ ...m, _fromStore: true }, m.authorId === selfId, true)
+      })
+    } catch (e) {
+      this.db = null
+      $('.lbl', this.storePill).textContent = 'off'
+      console.warn('Zen store unavailable, history will be in-memory only:', e)
+    }
+  }
+  persist(msg) {
+    if (!this.db) return
+    try {
+      // address each message by its own id -> idempotent, dedups across peers (CRDT)
+      this.db.get('messages').get(msg.id).put({
+        id: msg.id, text: msg.text || '', ts: msg.ts || nowTs(),
+        dm: !!msg.dm, to: msg.to || null, authorId: msg.authorId,
+        name: this.nameOf(msg.authorId), color: this.colorOf(msg.authorId)
+      })
+    } catch {}
+  }
+
+  /* ---------- messages ---------- */
+  sendCurrent() {
+    const text = this.input.value.trim()
+    if (!text) return
+    const target = this.recipient.value
+    const dm = target !== 'all'
+    const msg = { id: uuid(), text, ts: nowTs(), dm, authorId: selfId, to: dm ? target : null }
+    this.addMessage(msg, true)
+    this._sendMsg({ id: msg.id, text, ts: msg.ts, dm, to: msg.to }, dm ? target : null)
+    this.input.value = ''; this.autosize(); this.stopTyping()
+  }
+
+  addMessage(msg, mine, fromHistory = false) {
+    if (this.seen.has(msg.id)) return
+    this.seen.add(msg.id)
+    if (!msg._fromStore) this.persist(msg)   // write new live messages into Zen
+    this.messages.push(msg)
+    this.messages.sort((a, b) => a.ts - b.ts)
+
+    const node = el('div', { className: 'msg' + (mine ? ' me' : '') })
+    const meta = el('div', { className: 'meta' })
+    meta.append(
+      el('span', { className: 'nm', textContent: this.nameOf(msg.authorId), style: `color:${this.colorOf(msg.authorId)}` }),
+      el('span', { className: 'ts', textContent: fmtTime(msg.ts) }))
+    if (msg.dm) meta.append(el('span', { className: 'dm', textContent: mine ? 'DM → ' + this.nameOf(msg.to) : 'DM' }))
+    const body = el('div', { className: 'body' })
+    renderMarkdownInto(body, msg.text)
+    node.append(meta, body)
+    this.appendOrdered(node, msg.ts, fromHistory)
+  }
+
+  appendOrdered(node, ts, fromHistory) {
+    node.dataset.ts = ts
+    const atBottom = this.log.scrollHeight - this.log.scrollTop - this.log.clientHeight < 60
+    // ordered insertion (needed for backfill that arrives later)
+    let next = null
+    for (const child of this.log.children) {
+      if (+child.dataset.ts > ts) { next = child; break }
+    }
+    this.log.insertBefore(node, next)
+    if (!fromHistory || atBottom) this.log.scrollTop = this.log.scrollHeight
+  }
+
+  addSystem(text) {
+    const n = el('div', { className: 'sys', textContent: text })
+    n.dataset.ts = nowTs()
+    this.log.append(n)
+    this.log.scrollTop = this.log.scrollHeight
+  }
+
+  /* ---------- typing indicator ---------- */
+  notifyTyping() {
+    if (!this._sendTyp) return
+    if (!this.typingTimer) this._sendTyp(true)
+    clearTimeout(this.typingTimer)
+    this.typingTimer = setTimeout(() => this.stopTyping(), 2000)
+  }
+  stopTyping() { if (this.typingTimer) { clearTimeout(this.typingTimer); this.typingTimer = null; this._sendTyp && this._sendTyp(false) } }
+  renderTyping() {
+    const names = [...this.typingPeers].map(p => this.nameOf(p))
+    this.typingEl.textContent = names.length === 0 ? ''
+      : names.length === 1 ? `${names[0]} is typing…`
+      : `${names.slice(0, 2).join(', ')}${names.length > 2 ? ' and others' : ''} are typing…`
+  }
+
+  /* ---------- peers UI + DM recipient selector ---------- */
+  renderPeers() {
+    this.peersBar.innerHTML = ''
+    const me = el('div', { className: 'peer-chip' },
+      el('span', { className: 'swatch', style: `background:${settings.color}` }),
+      el('span', { textContent: settings.name + ' (you)' }),
+      el('span', { className: 'fp mono', textContent: identity.fingerprint }))
+    this.peersBar.append(me)
+    for (const [id, p] of this.peers) {
+      const vf = el('span', { className: 'vf ' + (p.verified ? 'ok' : 'no'), title: p.verified ? 'Verified identity' : 'Not verified' })
+      vf.append(ico(p.verified ? 'check' : 'alert'))
+      this.peersBar.append(el('div', { className: 'peer-chip' },
+        el('span', { className: 'swatch', style: `background:${p.color}` }),
+        el('span', { textContent: p.name }),
+        vf,
+        el('span', { className: 'fp mono', textContent: p.fingerprint })))
+    }
+  }
+  refreshRecipients() {
+    const prev = this.recipient.value
+    this.recipient.innerHTML = ''
+    this.recipient.append(el('option', { value: 'all', textContent: 'Everyone' }))
+    for (const [id, p] of this.peers) this.recipient.append(el('option', { value: id, textContent: 'DM · ' + p.name }))
+    if ([...this.recipient.options].some(o => o.value === prev)) this.recipient.value = prev
+  }
+
+  /* ---------- files (encrypted by the Trystero channel, automatic chunking) ---------- */
+  async shareFile(file) {
+    const meta = { id: uuid(), name: file.name, type: file.type, size: file.size }
+    this.upsertFileBubble(meta, selfId, true, 0)
+    const buf = new Uint8Array(await file.arrayBuffer())
+    const target = this.recipient.value === 'all' ? null : this.recipient.value
+    await this._sendFile(buf, target, meta, pct => this.upsertFileBubble(meta, selfId, true, pct))
+    this.completeFileBubble(meta, selfId, URL.createObjectURL(file))
+  }
+  fileBubbleId(meta, peerId) { return 'f_' + meta.id + '_' + peerId }
+  upsertFileBubble(meta, peerId, mine, pct) {
+    let node = $('#' + CSS.escape(this.fileBubbleId(meta, peerId)), this.log)
+    if (!node) {
+      node = el('div', { className: 'msg' + (mine ? ' me' : ''), id: this.fileBubbleId(meta, peerId) })
+      const head = el('div', { className: 'meta' },
+        el('span', { className: 'nm', textContent: this.nameOf(peerId), style: `color:${this.colorOf(peerId)}` }),
+        el('span', { className: 'ts', textContent: fmtTime(nowTs()) }))
+      const fi = el('span', { className: 'fi' }); fi.append(ico('file'))
+      const card = el('div', { className: 'filecard' },
+        fi,
+        el('div', { className: 'fmeta' },
+          el('div', { className: 'fname', textContent: meta.name }),
+          el('div', { className: 'fsize', textContent: fmtSize(meta.size) + (mine ? ' · sending…' : ' · receiving…') }),
+          el('div', { className: 'bar' }, el('i', {}))))
+      node.append(head, card)
+      this.appendOrdered(node, nowTs(), false)
+    }
+    const bar = $('.bar > i', node); if (bar) bar.style.width = Math.round((pct || 0) * 100) + '%'
+  }
+  completeFileBubble(meta, peerId, url) {
+    const node = $('#' + CSS.escape(this.fileBubbleId(meta, peerId)), this.log)
+    if (!node) return
+    $('.bar', node)?.remove()
+    const fsize = $('.fsize', node); if (fsize) fsize.textContent = fmtSize(meta.size)
+    const link = el('a', { className: 'dl', href: url, download: meta.name }); link.append(ico('download'), el('span', { textContent: 'Download' }))
+    $('.fmeta', node).append(link)
+  }
+
+  /* ---------- audio/video + livestream ---------- */
+  async toggleUserMedia(kind, btn) {
+    try {
+      if (this.localStream && this.localStream.getTracks().some(t => t.kind === kind)) {
+        // turn off that kind of track
+        this.localStream.getTracks().filter(t => t.kind === kind).forEach(t => { t.stop(); this.localStream.removeTrack(t) })
+        btn.classList.remove('on')
+        if (this.localStream.getTracks().length === 0) {
+          this.room.removeStream(this.localStream); this.removeVideo(selfId, 'cam'); this.localStream = null
+        }
+        return
+      }
+      const fresh = await navigator.mediaDevices.getUserMedia(kind === 'video' ? { video: true } : { audio: true })
+      btn.classList.add('on')
+      if (!this.localStream) {
+        this.localStream = fresh
+        this.room.addStream(this.localStream, null, { kind: 'cam' })
+        if (kind === 'video') this.addVideo(selfId, this.localStream, 'cam', true)
+      } else {
+        fresh.getTracks().forEach(t => this.localStream.addTrack(t))
+        this.room.addStream(this.localStream, null, { kind: 'cam' }) // re-announce with the new track
+        if (kind === 'video') this.addVideo(selfId, this.localStream, 'cam', true)
+      }
+    } catch (e) { this.addSystem('Media denied: ' + e.message) }
+  }
+  async toggleScreen(btn) {
+    try {
+      if (this.screenStream) {
+        this.screenStream.getTracks().forEach(t => t.stop())
+        this.room.removeStream(this.screenStream); this.removeVideo(selfId, 'screen')
+        this.screenStream = null; btn.classList.remove('on'); return
+      }
+      const s = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
+      this.screenStream = s; btn.classList.add('on')
+      this.room.addStream(s, null, { kind: 'screen' })
+      this.addVideo(selfId, s, 'screen', true)
+      s.getVideoTracks()[0].addEventListener('ended', () => this.toggleScreen(btn))
+    } catch (e) { this.addSystem('Screen sharing cancelled') }
+  }
+  addVideo(peerId, stream, kind, muted = false) {
+    this.removeVideo(peerId, kind)
+    const v = el('video', { autoplay: true, playsInline: true, muted })
+    v.srcObject = stream
+    const lbl = el('span', { className: 'lbl' })
+    if (kind === 'screen') lbl.append(ico('screen'))
+    lbl.append(el('span', { textContent: this.nameOf(peerId) + (muted ? ' (you)' : '') }))
+    const wrap = el('div', { className: 'vwrap' + (kind === 'screen' ? ' screen' : '') }, v, lbl)
+    wrap.dataset.peer = peerId; wrap.dataset.kind = kind
+    this.mediaBar.append(wrap)
+  }
+  removeVideo(peerId, kind) {
+    this.mediaBar.querySelectorAll(`[data-peer="${CSS.escape(peerId)}"][data-kind="${kind}"]`).forEach(n => n.remove())
+  }
+
+  destroy() {
+    try { this.localStream?.getTracks().forEach(t => t.stop()) } catch {}
+    try { this.screenStream?.getTracks().forEach(t => t.stop()) } catch {}
+    try { this.room?.leave() } catch {}
+  }
+}
+
+/* =======================================================================
+   Web Component <chat-room room="..." [secret="..."]>
+   Same code as the page, embeddable elsewhere (or via <iframe>).
+   ======================================================================= */
+class ChatRoomElement extends HTMLElement {
+  connectedCallback() {
+    const roomId = this.getAttribute('room')
+    if (!roomId) { this.textContent = 'Missing "room" attribute'; return }
+    const secret = this.getAttribute('secret') || roomId
+    const isPublic = !this.hasAttribute('secret')
+    this.session = new ChatSession(this, { roomId, secret, isPublic, shareUrl: location.href })
+  }
+  disconnectedCallback() { this.session?.destroy(); this.session = null }
+}
+customElements.define('chat-room', ChatRoomElement)
+
+/* =======================================================================
+   Router (hash) + home screen
+   #/r/<name>            -> public room (key = name)
+   #/p/<id>/<secret>     -> private room (secret in the fragment, never on the server)
+   ======================================================================= */
+const app = $('#app')
+let current = null
+
+function parseHash() {
+  const h = location.hash.replace(/^#/, '')
+  const parts = h.split('/').filter(Boolean)
+  if (parts[0] === 'r' && parts[1]) return { isPublic: true, roomId: parts[1], secret: parts[1] }
+  if (parts[0] === 'p' && parts[1] && parts[2]) return { isPublic: false, roomId: parts[1], secret: parts[2] }
+  return null
+}
+
+function route() {
+  if (current) { current.session?.destroy?.(); current.remove?.(); current = null }
+  app.innerHTML = ''
+  const r = parseHash()
+  if (!r) { renderHome(); return }
+  const node = document.createElement('chat-room')
+  node.setAttribute('room', r.roomId)
+  if (!r.isPublic) node.setAttribute('secret', r.secret)
+  app.append(node)
+  current = node
+}
+
+function renderHome() {
+  const home = el('div', { className: 'home' })
+  const logo = el('span', { className: 'logo' }); logo.append(ico('rabbit'))
+  home.append(
+    el('div', { className: 'brand' }, logo, el('h1', { textContent: 'White Rabbit' })),
+    el('div', { className: 'sub', textContent: 'End-to-end P2P chat — no server, no account. Follow the white rabbit.' }))
+
+  const cardH3 = (icon, text) => { const h = el('h3'); h.append(ico(icon), el('span', { textContent: text })); return h }
+
+  // private room
+  const priv = el('div', { className: 'card' })
+  priv.append(cardH3('lock', 'Private room'),
+    el('div', { className: 'sub', textContent: 'Random id and key in the link. Share it only with whom you want.' }))
+  const privBtn = el('button', { className: 'btn' }); privBtn.append(ico('lock'), el('span', { textContent: 'Create and join' }))
+  privBtn.onclick = () => { location.hash = `#/p/${uuid()}/${randSecret()}` }
+  priv.append(el('div', { className: 'row' }, privBtn))
+
+  // public room
+  const pub = el('div', { className: 'card' })
+  pub.append(cardH3('hash', 'Public room'),
+    el('div', { className: 'sub', textContent: 'Anyone who types the same name joins (the key is the name).' }))
+  const nameIn = el('input', { type: 'text', placeholder: 'e.g. kitchen, project-x…' })
+  const pubBtn = el('button', { className: 'btn secondary', textContent: 'Join' })
+  const go = () => { const n = nameIn.value.trim(); if (n) location.hash = `#/r/${encodeURIComponent(n)}` }
+  pubBtn.onclick = go
+  nameIn.addEventListener('keydown', e => { if (e.key === 'Enter') go() })
+  pub.append(el('div', { className: 'row' }, el('div', { className: 'grow' }, nameIn), pubBtn))
+
+  // identity
+  const idc = el('div', { className: 'card' })
+  idc.append(cardH3('user', 'You'))
+  const nm = el('input', { type: 'text', value: settings.name })
+  const col = el('input', { type: 'color', value: settings.color })
+  nm.oninput = () => { settings.name = nm.value.trim() || settings.name; saveSettings() }
+  col.oninput = () => { settings.color = col.value; saveSettings() }
+  const themeBtn = el('button', { className: 'btn ghost' }); themeBtn.append(ico('theme'), el('span', { textContent: 'Theme' }))
+  themeBtn.onclick = () => { settings.theme = settings.theme === 'dark' ? 'light' : 'dark'; saveSettings(); applyTheme() }
+  idc.append(el('div', { className: 'row' }, el('div', { className: 'grow' }, nm), col, themeBtn),
+    el('div', { className: 'sub mono', style: 'margin-top:8px', textContent: 'fingerprint: ' + identity.fingerprint }))
+
+  const feats = el('ul', { className: 'features' })
+  ;['Multi-peer + DM', 'Markdown + syntax highlight', 'Audio / video / screen', 'Livestream', 'Encrypted files', 'History backfill',
+    'Peer verification (public key)', 'E2E (WebRTC + password)', 'Persistent history (Zen graph)', 'Light/dark themes', 'Web Component <chat-room>'
+  ].forEach(f => { const li = el('li'); li.append(ico('check'), el('span', { textContent: f })); feats.append(li) })
+
+  const ghLink = el('a', { href: 'https://github.com/scobru/whiterabbit', target: '_blank', rel: 'noopener' })
+  ghLink.append(ico('star'), el('span', { textContent: 'scobru/whiterabbit on GitHub' }))
+  const foot = el('div', { className: 'foot' }, ghLink)
+
+  home.append(priv, pub, idc, el('div', { className: 'card' }, el('h3', { textContent: 'Features' }), feats), foot)
+  app.append(home)
+}
+
+/* ---------------- shared settings panel (dialog) ---------------- */
+let dlg
+function openSettings() {
+  if (!dlg) {
+    dlg = el('dialog')
+    const nm = el('input', { type: 'text', value: settings.name })
+    const col = el('input', { type: 'color', value: settings.color })
+    const close = el('button', { className: 'btn secondary', textContent: 'Close' })
+    const save = el('button', { className: 'btn', textContent: 'Save' })
+    dlg.append(
+      el('div', { className: 'dlg-h', textContent: 'Settings' }),
+      el('div', { className: 'dlg-b' },
+        el('label', { className: 'fld' }, 'Name', nm),
+        el('label', { className: 'fld' }, 'Color', col),
+        el('div', { className: 'sub mono', textContent: 'fingerprint: ' + identity.fingerprint })),
+      el('div', { className: 'dlg-f' }, close, save))
+    close.onclick = () => dlg.close()
+    save.onclick = () => {
+      settings.name = nm.value.trim() || settings.name; settings.color = col.value; saveSettings()
+      current?.session?.updateIdentity?.()
+      dlg.close()
+    }
+    document.body.append(dlg)
+  }
+  dlg.showModal()
+}
+
+/* ---------------- startup ---------------- */
+try {
+  applyTheme()
+  await initIdentity()
+  window.addEventListener('hashchange', route)
+  route()
+} catch (e) {
+  app.innerHTML = '<pre style="padding:20px;color:#f88;white-space:pre-wrap">' + (e.stack || e.message) + '</pre>'
+}
+</script>
+</body>
+</html>
