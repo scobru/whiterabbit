@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
 <title>White Rabbit — chat P2P E2E</title>
 <link rel="icon" href="rabbit.webp">
 <!-- Syntax-highlight theme (one for dark, one for light: I enable one at a time) -->
@@ -73,7 +73,7 @@
     --scrim:rgba(0,0,0,.35);
   }
   *{box-sizing:border-box}
-  html,body{height:100%}
+  html,body{height:100%; height:100dvh; overflow:hidden}
   body{
     margin:0; background:var(--bg); color:var(--text);
     font:15px/1.5 Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -81,9 +81,9 @@
   }
   button{font:inherit; cursor:pointer}
   a{color:var(--accent)}
-  #app{height:100%}
+  #app{height:100%; height:100dvh; overflow:hidden; display:flex; flex-direction:column}
   ::selection{background:color-mix(in srgb,var(--accent) 35%,transparent)}
-  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar{width:8px;height:8px}
   ::-webkit-scrollbar-thumb{background:var(--border); border-radius:99px; border:2px solid var(--bg)}
   ::-webkit-scrollbar-track{background:transparent}
 
@@ -98,145 +98,204 @@
   :is(.btn,.iconbtn,input,select,textarea):focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 
   /* ---------- Home screen ---------- */
-  .home{max-width:680px; margin:0 auto; padding:48px 20px 32px; display:flex; flex-direction:column; gap:18px}
+  .home{max-width:680px; width:100%; margin:0 auto; padding:32px 16px; display:flex; flex-direction:column; gap:16px; overflow-y:auto; flex:1}
   .brand{display:flex; align-items:center; gap:14px}
-  .brand h1{margin:0; font-size:32px; font-weight:500; letter-spacing:0}
+  .brand h1{margin:0; font-size:28px; font-weight:500; letter-spacing:0}
   .brand .dot{width:16px; height:16px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 22%,transparent)}
-  .sub{color:var(--muted); margin:-6px 0 4px; font-size:14px}
+  .sub{color:var(--muted); margin:-4px 0 4px; font-size:14px}
   .card{
-    background:var(--panel); border:none; border-radius:24px; padding:22px;
+    background:var(--panel); border:none; border-radius:20px; padding:18px;
     box-shadow:var(--shadow1); transition:box-shadow .25s;
   }
   .card:hover{box-shadow:var(--shadow2)}
-  .card h3{margin:0 0 8px; font-size:17px; font-weight:500; letter-spacing:.1px}
-  .row{display:flex; gap:12px; flex-wrap:wrap; margin-top:12px}
-  .grow{flex:1 1 200px}
+  .card h3{margin:0 0 6px; font-size:16px; font-weight:500; letter-spacing:.1px}
+  .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+  .grow{flex:1 1 180px}
   input[type=text],select,textarea{
     width:100%; background:var(--panel2); color:var(--text); border:1px solid transparent;
-    border-radius:14px; padding:13px 16px; outline:none; font:inherit;
+    border-radius:14px; padding:12px 16px; outline:none; font-size:16px; font-family:inherit;
     transition:border-color .2s, background-color .2s;
   }
   input[type=text]:hover,textarea:hover,select:hover{border-color:var(--border)}
   input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent); background:color-mix(in srgb,var(--accent) 6%,var(--panel2))}
   ::placeholder{color:var(--muted2)}
-  input[type=color]{width:48px; height:48px; padding:4px; border:1px solid var(--border); border-radius:14px; background:var(--panel2); cursor:pointer}
+  input[type=color]{width:44px; height:44px; padding:3px; border:1px solid var(--border); border-radius:12px; background:var(--panel2); cursor:pointer}
   .btn{
     background:var(--accent); color:var(--on-accent); border:0; border-radius:999px;
-    padding:12px 24px; font-weight:500; letter-spacing:.1px; box-shadow:var(--shadow1);
+    padding:10px 20px; font-weight:500; letter-spacing:.1px; box-shadow:var(--shadow1);
+    display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:42px;
   }
   .btn:hover{box-shadow:var(--shadow2)}
   .btn.secondary{background:var(--secondary-container); color:var(--on-secondary-container); box-shadow:none}
   .btn.ghost{background:transparent; color:var(--accent); border:1px solid var(--border); box-shadow:none}
+  .btn.danger{background:var(--error); color:#fff; box-shadow:none}
   .btn:disabled{opacity:.4; cursor:not-allowed; box-shadow:none}
-  .features{display:grid; grid-template-columns:1fr 1fr; gap:8px 18px; color:var(--muted); font-size:13px; margin:6px 0 0; padding:0}
+  .features{display:grid; grid-template-columns:1fr 1fr; gap:8px 14px; color:var(--muted); font-size:13px; margin:6px 0 0; padding:0}
   .features li{list-style:none; display:flex; align-items:center; gap:6px}
   .foot{text-align:center; padding:8px 0; color:var(--muted); font-size:13px}
   .foot a{text-decoration:none; font-weight:500; color:var(--accent)}
   .foot a:hover{text-decoration:underline}
 
   /* ---------- Room ---------- */
-  chat-room{display:block; height:100%}
-  .cc{display:flex; flex-direction:column; height:100%; min-height:0}
+  chat-room{display:block; height:100%; height:100dvh; overflow:hidden}
+  .cc{display:flex; flex-direction:column; height:100%; min-height:0; overflow:hidden}
+  
+  /* Top header */
   .cc-head{
-    display:flex; align-items:center; gap:10px; padding:12px 16px;
-    background:var(--panel); flex-wrap:wrap; box-shadow:var(--shadow1); position:relative; z-index:3;
+    display:flex; align-items:center; gap:8px; padding:8px 12px;
+    background:var(--panel); box-shadow:var(--shadow1); position:relative; z-index:3;
+    min-height:52px; flex-shrink:0;
   }
-  .cc-head .title{font-weight:500; font-size:17px; letter-spacing:.1px}
-  .cc-head .spacer{flex:1}
-  .cc-head .group{display:flex; align-items:center; gap:8px}
-  .cc-head .divider{width:1px; align-self:stretch; min-height:28px; background:var(--border); margin:0 4px}
-  @media (max-width:560px){ .cc-head .divider{display:none} }
+  .cc-head .title-wrap{display:flex; align-items:center; gap:8px; min-width:0; flex:1 1 auto}
+  .cc-head .title{
+    font-weight:500; font-size:16px; letter-spacing:.1px; white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis; max-width:200px;
+  }
+  .cc-head .group{display:flex; align-items:center; gap:4px; flex-shrink:0}
+  .cc-head .divider{width:1px; align-self:stretch; min-height:24px; background:var(--border); margin:0 2px}
+  
   .pill{
-    font-size:12px; font-weight:500; color:var(--on-secondary-container); background:var(--secondary-container);
-    border:none; padding:5px 12px; border-radius:999px; white-space:nowrap;
+    font-size:11px; font-weight:500; color:var(--on-secondary-container); background:var(--secondary-container);
+    border:none; padding:4px 10px; border-radius:999px; white-space:nowrap; flex-shrink:0;
   }
   .iconbtn{
     background:transparent; border:none; color:var(--muted); border-radius:50%;
-    width:42px; height:42px; display:grid; place-items:center; font-size:17px;
+    width:38px; height:38px; display:grid; place-items:center; font-size:16px; flex-shrink:0;
   }
   .iconbtn:hover{background:color-mix(in srgb,var(--text) 8%,transparent); color:var(--text)}
   .iconbtn.on{background:var(--accent-container); color:var(--on-accent-container)}
   .iconbtn.danger.on{background:var(--error); color:#fff}
 
-  .cc-peers{display:flex; gap:8px; flex-wrap:wrap; padding:10px 16px; background:var(--panel); position:relative; z-index:2}
-  .peer-chip{
-    display:flex; align-items:center; gap:7px; font-size:12px; font-weight:500;
-    background:transparent; border:1px solid var(--border); border-radius:10px; padding:5px 12px;
+  /* Peers bar (horizontal scroll on mobile) */
+  .cc-peers{
+    display:flex; gap:6px; padding:6px 12px; background:var(--panel); position:relative; z-index:2;
+    overflow-x:auto; flex-wrap:nowrap; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+    border-bottom:1px solid color-mix(in srgb,var(--border) 40%,transparent); flex-shrink:0;
   }
-  .peer-chip:hover{background:color-mix(in srgb,var(--text) 5%,transparent)}
-  .peer-chip .swatch{width:11px; height:11px; border-radius:50%; box-shadow:0 0 0 2px color-mix(in srgb,currentColor 0%,transparent)}
-  .peer-chip .vf{font-size:11px}
+  .cc-peers::-webkit-scrollbar{display:none}
+  .peer-chip{
+    display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500;
+    background:var(--panel2); border:1px solid var(--border); border-radius:999px; padding:4px 10px;
+    flex:0 0 auto; cursor:pointer; user-select:none;
+  }
+  .peer-chip:hover{background:color-mix(in srgb,var(--text) 8%,var(--panel2))}
+  .peer-chip.blocked{opacity:.5; border-style:dashed; border-color:var(--error)}
+  .peer-chip .swatch{width:9px; height:9px; border-radius:50%; flex-shrink:0}
+  .peer-chip .vf{font-size:10px}
   .peer-chip .vf.ok{color:var(--ok)} .peer-chip .vf.no{color:var(--warn)}
-  .peer-chip .fp{color:var(--muted2); font-family:"Roboto Mono",ui-monospace,monospace; font-size:11px}
+  .peer-chip .fp{color:var(--muted2); font-family:"Roboto Mono",ui-monospace,monospace; font-size:10px}
 
-  .cc-media{display:flex; gap:10px; padding:10px 16px; overflow-x:auto; background:color-mix(in srgb,#000 65%,var(--bg)); position:relative; z-index:1}
+  /* Media stream bar */
+  .cc-media{display:flex; gap:10px; padding:8px 12px; overflow-x:auto; background:color-mix(in srgb,#000 65%,var(--bg)); position:relative; z-index:1; flex-shrink:0}
   .cc-media:empty{display:none}
-  .vwrap{position:relative; flex:0 0 auto; border-radius:16px; overflow:hidden; background:#000; box-shadow:var(--shadow2)}
-  .vwrap video{display:block; width:240px; height:135px; object-fit:cover; background:#000}
-  .vwrap.screen video{width:360px; height:203px}
-  .vwrap .lbl{position:absolute; left:8px; bottom:8px; font-size:11px; font-weight:500; background:rgba(0,0,0,.65); color:#fff; padding:3px 9px; border-radius:999px; backdrop-filter:blur(4px)}
+  .vwrap{position:relative; flex:0 0 auto; border-radius:14px; overflow:hidden; background:#000; box-shadow:var(--shadow2)}
+  .vwrap video{display:block; width:200px; height:112px; object-fit:cover; background:#000}
+  .vwrap.screen video{width:320px; height:180px}
+  .vwrap .lbl{position:absolute; left:6px; bottom:6px; font-size:10px; font-weight:500; background:rgba(0,0,0,.7); color:#fff; padding:2px 8px; border-radius:999px; backdrop-filter:blur(4px)}
 
-  .cc-log{flex:1; min-height:0; overflow-y:auto; padding:18px 16px; display:flex; flex-direction:column; gap:10px}
+  /* Chat message log */
+  .cc-log{flex:1; min-height:0; overflow-y:auto; padding:14px 12px; display:flex; flex-direction:column; gap:8px; -webkit-overflow-scrolling:touch}
   .msg{
-    max-width:78%; align-self:flex-start; background:var(--bubble); border:none;
-    border-radius:18px 18px 18px 4px; padding:10px 14px; box-shadow:var(--shadow1);
-    animation:msg-in .18s ease-out;
+    max-width:85%; align-self:flex-start; background:var(--bubble); border:none;
+    border-radius:18px 18px 18px 4px; padding:8px 12px; box-shadow:var(--shadow1);
+    animation:msg-in .15s ease-out; position:relative;
   }
   .msg.me{align-self:flex-end; background:var(--bubble-me); color:var(--on-bubble-me); border-radius:18px 18px 4px 18px}
-  @keyframes msg-in{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
-  .msg .meta{display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:3px}
-  .msg .meta .nm{font-weight:500}
+  .msg.blocked-placeholder{opacity:.65; background:color-mix(in srgb,var(--bubble) 80%,var(--panel2)); font-size:13px; font-style:italic}
+  @keyframes msg-in{from{opacity:0; transform:translateY(4px)}to{opacity:1; transform:none}}
+  .msg .meta{display:flex; align-items:center; gap:6px; font-size:11px; margin-bottom:2px; user-select:none}
+  .msg .meta .nm{font-weight:500; cursor:pointer}
+  .msg .meta .nm:hover{text-decoration:underline}
   .msg .meta .ts{color:var(--muted2)}
   .msg.me .meta .ts{color:color-mix(in srgb,var(--on-bubble-me) 65%,transparent)}
-  .msg .dm{font-size:11px; font-weight:500; color:var(--on-accent-container); background:var(--accent-container); border:none; border-radius:999px; padding:1px 8px}
-  .msg .body{word-wrap:break-word; overflow-wrap:anywhere}
-  .msg .body p{margin:.3em 0}
-  .msg .body pre{background:var(--panel2); color:var(--text); padding:12px; border-radius:12px; overflow:auto; border:none}
-  .msg .body code{font-family:"Roboto Mono",ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px}
-  .msg .body :not(pre)>code{background:var(--panel2); color:var(--text); padding:1px 6px; border-radius:6px}
-  .msg .body img{max-width:100%; border-radius:12px}
+  .msg .dm{font-size:10px; font-weight:500; color:var(--on-accent-container); background:var(--accent-container); border:none; border-radius:999px; padding:1px 6px}
+  .msg .body{word-wrap:break-word; overflow-wrap:anywhere; font-size:14px}
+  .msg .body p{margin:.25em 0}
+  .msg .body pre{background:var(--panel2); color:var(--text); padding:10px; border-radius:10px; overflow:auto; border:none; margin:.4em 0}
+  .msg .body code{font-family:"Roboto Mono",ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px}
+  .msg .body :not(pre)>code{background:var(--panel2); color:var(--text); padding:1px 5px; border-radius:4px}
+  .msg .body img{max-width:100%; border-radius:10px}
+  .msg .unhide-btn{background:none; border:none; color:var(--accent); font:inherit; font-size:12px; text-decoration:underline; cursor:pointer; padding:0 4px}
+  
   .sys{
-    align-self:center; color:var(--muted); font-size:12px; font-weight:500;
-    background:var(--panel); padding:4px 14px; border-radius:999px;
+    align-self:center; color:var(--muted); font-size:11px; font-weight:500;
+    background:var(--panel); padding:3px 10px; border-radius:999px; max-width:90%; text-align:center;
   }
 
-  .filecard{display:flex; align-items:center; gap:12px; min-width:240px}
+  /* File cards */
+  .filecard{display:flex; align-items:center; gap:10px; min-width:200px}
   .filecard .fi{
-    font-size:10px; font-weight:700; letter-spacing:.5px; width:44px; height:44px; display:grid; place-items:center;
-    background:var(--accent-container); color:var(--on-accent-container); border-radius:14px; flex:0 0 auto;
+    font-size:9px; font-weight:700; letter-spacing:.5px; width:38px; height:38px; display:grid; place-items:center;
+    background:var(--accent-container); color:var(--on-accent-container); border-radius:10px; flex:0 0 auto;
   }
   .filecard .fmeta{flex:1; min-width:0}
-  .filecard .fname{font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .filecard .fsize{font-size:12px; color:var(--muted2)}
-  .bar{height:5px; background:color-mix(in srgb,var(--accent) 25%,transparent); border-radius:99px; overflow:hidden; margin-top:6px}
+  .filecard .fname{font-weight:500; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .filecard .fsize{font-size:11px; color:var(--muted2)}
+  .bar{height:4px; background:color-mix(in srgb,var(--accent) 25%,transparent); border-radius:99px; overflow:hidden; margin-top:4px}
   .bar > i{display:block; height:100%; width:0; background:var(--accent); border-radius:99px; transition:width .15s}
 
-  .typing{padding:0 16px 6px; color:var(--muted); font-size:12px; min-height:18px; font-style:italic}
+  .typing{padding:0 14px 4px; color:var(--muted); font-size:11px; min-height:16px; font-style:italic; flex-shrink:0}
 
+  /* Responsive Modern Compose Area */
   .cc-compose{
-    display:flex; gap:10px; align-items:flex-end; padding:12px 16px calc(12px + env(safe-area-inset-bottom));
-    background:var(--panel); box-shadow:0 -1px 2px rgba(0,0,0,.12); position:relative; z-index:3;
+    display:flex; flex-direction:column; gap:6px; padding:8px 12px max(8px, env(safe-area-inset-bottom));
+    background:var(--panel); box-shadow:0 -1px 3px rgba(0,0,0,.12); position:relative; z-index:3; flex-shrink:0;
   }
-  .cc-compose textarea{flex:1; resize:none; max-height:160px; min-height:48px; border-radius:24px; padding:13px 18px}
-  .cc-compose .actions{display:flex; gap:8px; align-items:flex-end}
-  .cc-compose select{width:auto; max-width:160px; border-radius:999px; min-height:48px}
-  .cc-compose .btn{min-height:48px}
-  .cc-compose .iconbtn{width:48px; height:48px; background:var(--secondary-container); color:var(--on-secondary-container)}
+  .compose-top{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+  }
+  .dm-badge{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:500;
+    background:var(--panel2); color:var(--text); border:1px solid var(--border); border-radius:999px;
+    padding:3px 10px; cursor:pointer; user-select:none; transition:background-color .15s;
+  }
+  .dm-badge:hover{background:color-mix(in srgb,var(--text) 6%,var(--panel2))}
+  .dm-badge.active{background:var(--accent-container); color:var(--on-accent-container); border-color:transparent}
+  .dm-badge .close-dm{margin-left:2px; font-weight:bold; cursor:pointer; font-size:14px; line-height:1}
+  
+  .compose-main{
+    display:flex; gap:8px; align-items:flex-end; width:100%;
+  }
+  .cc-compose textarea{
+    flex:1; min-width:0; resize:none; max-height:120px; min-height:42px;
+    border-radius:20px; padding:10px 14px; font-size:15px; line-height:1.4;
+  }
+  .compose-actions{
+    display:flex; gap:6px; align-items:center; flex-shrink:0;
+  }
+  .compose-btn-file{
+    width:42px; height:42px; border-radius:50%; background:var(--panel2);
+    color:var(--text); border:none; display:grid; place-items:center; font-size:18px; flex-shrink:0;
+  }
+  .compose-btn-send{
+    width:42px; height:42px; border-radius:50%; background:var(--accent);
+    color:var(--on-accent); border:none; display:grid; place-items:center; font-size:18px; flex-shrink:0;
+    box-shadow:var(--shadow1); padding:0;
+  }
+  .compose-btn-send svg{width:20px; height:20px; fill:currentColor; transform:translateX(1px)}
 
-  /* ---------- Settings panel ---------- */
+  /* Dialogs */
   dialog{
-    border:none; border-radius:28px; background:var(--panel); color:var(--text);
-    padding:0; max-width:420px; width:92%; box-shadow:var(--shadow3);
+    border:none; border-radius:24px; background:var(--panel); color:var(--text);
+    padding:0; max-width:400px; width:90%; box-shadow:var(--shadow3);
   }
-  dialog::backdrop{background:var(--scrim)}
-  dialog[open]{animation:dlg-in .2s ease-out}
-  @keyframes dlg-in{from{opacity:0; transform:translateY(12px) scale(.97)}to{opacity:1; transform:none}}
-  .dlg-h{padding:22px 24px 8px; font-weight:500; font-size:22px; display:flex}
-  .dlg-b{padding:14px 24px; display:flex; flex-direction:column; gap:14px}
-  .dlg-f{padding:14px 24px 22px; display:flex; justify-content:flex-end; gap:10px}
-  label.fld{display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:500; color:var(--muted)}
+  dialog::backdrop{background:var(--scrim); backdrop-filter:blur(2px)}
+  dialog[open]{animation:dlg-in .18s ease-out}
+  @keyframes dlg-in{from{opacity:0; transform:translateY(8px) scale(.98)}to{opacity:1; transform:none}}
+  .dlg-h{padding:18px 20px 6px; font-weight:500; font-size:18px; display:flex; align-items:center; justify-content:space-between}
+  .dlg-b{padding:12px 20px; display:flex; flex-direction:column; gap:12px; max-height:65vh; overflow-y:auto}
+  .dlg-f{padding:10px 20px 18px; display:flex; justify-content:flex-end; gap:8px}
+  label.fld{display:flex; flex-direction:column; gap:4px; font-size:12px; font-weight:500; color:var(--muted)}
   .mono{font-family:"Roboto Mono",ui-monospace,monospace}
   .hide{display:none !important}
+  
+  .checkbox-row{display:flex; align-items:center; gap:10px; font-size:14px; font-weight:400; color:var(--text); cursor:pointer}
+  .checkbox-row input[type=checkbox]{width:18px; height:18px; accent-color:var(--accent); cursor:pointer}
+  .blocked-list{display:flex; flex-direction:column; gap:6px; margin-top:4px}
+  .blocked-item{
+    display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 10px;
+    background:var(--panel2); border-radius:10px; font-size:12px;
+  }
 </style>
 </head>
 <body>
@@ -253,7 +312,9 @@ import hljs from 'highlight.js'
    Features: multi-peer chat, DM, markdown+syntax-highlight, history
    backfill, audio/video, screen sharing, livestream, encrypted file sending,
    public/private rooms, E2E (WebRTC + password), peer verification via
-   public-key cryptography, no persistence, themes, <chat-room/>.
+   public-key cryptography, client-side peer mute/block, streamer mode,
+   browser notifications + audio chime, mobile-friendly responsive layout,
+   no persistence, themes, <chat-room/>.
    ======================================================================= */
 
 const APP_ID = 'white-rabbit-p2p-v1'             // global namespace on the trackers
@@ -263,7 +324,7 @@ const enc = new TextEncoder()
 const $ = (sel, root = document) => root.querySelector(sel)
 const el = (tag, props = {}, ...kids) => {
   const n = Object.assign(document.createElement(tag), props)
-  for (const k of kids) n.append(k)
+  for (const k of kids) if (k) n.append(k)
   return n
 }
 const uuid = () => crypto.randomUUID()
@@ -279,11 +340,7 @@ async function sha256hex(buf) {
   return [...new Uint8Array(h)].map(x => x.toString(16).padStart(2, '0')).join('')
 }
 
-/* ---------------- identity + public-key verification ----------------
-   We generate an ECDSA P-256 key pair per session. We sign our own selfId
-   and send (public key + signature). Others verify that whoever claims
-   `peerId` actually owns the private key: impossible to forge without the
-   key, and copying someone else's meta fails (signature on a different selfId). */
+/* ---------------- identity + public-key verification ---------------- */
 let identity
 async function initIdentity() {
   const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify'])
@@ -301,7 +358,7 @@ async function verifyPeer(peerId, pubJwk, sig) {
   } catch { return { ok: false, fingerprint: '????????????????' } }
 }
 
-/* ---------------- user settings (the only things persisted) ---------------- */
+/* ---------------- user settings + client-side moderation ---------------- */
 const settings = loadSettings()
 function loadSettings() {
   let s = {}
@@ -310,6 +367,10 @@ function loadSettings() {
     name: s.name || 'Anon-' + selfId.slice(0, 4),
     color: s.color || '#' + ((Math.abs([...selfId].reduce((a, c) => a * 33 + c.charCodeAt(0), 7)) % 0xffffff) | 0x404040).toString(16).padStart(6, '0').slice(0, 6),
     theme: s.theme || 'dark',
+    anonymize: Boolean(s.anonymize),
+    notifications: s.notifications !== undefined ? Boolean(s.notifications) : true,
+    sound: s.sound !== undefined ? Boolean(s.sound) : true,
+    blocked: Array.isArray(s.blocked) ? s.blocked : [] // list of { id, fingerprint, name }
   }
 }
 function saveSettings() { localStorage.setItem('whiterabbit.settings', JSON.stringify(settings)) }
@@ -319,17 +380,99 @@ function applyTheme() {
   $('#hljs-light').disabled = settings.theme === 'dark'
 }
 
-/* ---------------- safe markdown + syntax highlight ----------------
-   Messages are NEVER persisted to disk. They are rendered as
-   markdown (gfm), sanitized with DOMPurify, and code blocks highlighted. */
+function isBlocked(peerId, fingerprint = null) {
+  return settings.blocked.some(b => b.id === peerId || (fingerprint && b.fingerprint === fingerprint))
+}
+
+function blockPeer(peerId, name = '', fingerprint = '') {
+  if (!isBlocked(peerId, fingerprint)) {
+    settings.blocked.push({ id: peerId, name: name || 'Anon-' + peerId.slice(0, 4), fingerprint: fingerprint || '' })
+    saveSettings()
+    current?.session?.onBlockChanged()
+  }
+}
+
+function unblockPeer(target) {
+  settings.blocked = settings.blocked.filter(b => b.id !== target && b.fingerprint !== target)
+  saveSettings()
+  current?.session?.onBlockChanged()
+}
+
+/* ---------------- Notifications & Audio chime ---------------- */
+let unreadCount = 0
+
+function updateDocumentTitle(roomName = '') {
+  const prefix = unreadCount > 0 ? `(${unreadCount}) ` : ''
+  const rName = roomName ? (roomName.startsWith('#') ? roomName : '# ' + roomName) : ''
+  document.title = `${prefix}${rName ? rName + ' · ' : ''}White Rabbit`
+}
+
+window.addEventListener('focus', () => {
+  unreadCount = 0
+  updateDocumentTitle(current?.session?.displayRoomName?.() || '')
+})
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    unreadCount = 0
+    updateDocumentTitle(current?.session?.displayRoomName?.() || '')
+  }
+})
+
+async function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    try { await Notification.requestPermission() } catch {}
+  }
+}
+
+function playNotificationSound() {
+  if (!settings.sound) return
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime) // D5
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.08) // A5
+    gain.gain.setValueAtTime(0.08, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.3)
+  } catch {}
+}
+
+function notifyIncomingMessage(title, body, tag = 'msg') {
+  if (document.hidden || !document.hasFocus()) {
+    unreadCount++
+    updateDocumentTitle(current?.session?.displayRoomName?.() || '')
+  }
+  playNotificationSound()
+  if (!settings.notifications || !('Notification' in window)) return
+  if (Notification.permission === 'granted' && (document.hidden || !document.hasFocus())) {
+    try {
+      const notif = new Notification(title, {
+        body,
+        icon: 'rabbit.webp',
+        badge: 'rabbit.webp',
+        tag
+      })
+      notif.onclick = () => {
+        window.focus()
+        notif.close()
+      }
+    } catch {}
+  }
+}
+
+/* ---------------- safe markdown + syntax highlight ---------------- */
 function renderMarkdownInto(node, text) {
   node.innerHTML = DOMPurify.sanitize(marked.parse(text, { breaks: true, gfm: true }))
   node.querySelectorAll('pre code').forEach(b => { try { hljs.highlightElement(b) } catch {} })
 }
 
 /* =======================================================================
-   ChatSession — all the logic of a room, mounted into a container.
-   Used both by the main page and by the <chat-room> web component.
+   ChatSession — room controller and UI
    ======================================================================= */
 class ChatSession {
   constructor(container, { roomId, secret, isPublic, shareUrl }) {
@@ -338,14 +481,16 @@ class ChatSession {
     this.shareUrl = shareUrl
     this.isPublic = isPublic
     this.peers = new Map()            // peerId -> {name,color,verified,fingerprint}
-    this.messages = []                // solo in memoria
+    this.messages = []                // in-memory only
     this.seen = new Set()             // dedup backfill
     this.localStream = null
     this.screenStream = null
     this.typingTimer = null
     this.typingPeers = new Set()
+    this.targetRecipient = 'all'      // 'all' or peerId
     this.buildUI()
     this.connect(secret)
+    updateDocumentTitle(this.displayRoomName())
   }
 
   /* ---------- UI ---------- */
@@ -354,52 +499,65 @@ class ChatSession {
     c.innerHTML = ''
     c.classList.add('cc')
 
-    const mic = el('button', { className: 'iconbtn', title: 'Microphone', textContent: 'Mic' })
-    const cam = el('button', { className: 'iconbtn', title: 'Camera', textContent: 'Cam' })
-    const screen = el('button', { className: 'iconbtn', title: 'Share screen', textContent: 'Scr' })
+    const mic = el('button', { className: 'iconbtn', title: 'Microphone', textContent: '🎙' })
+    const cam = el('button', { className: 'iconbtn', title: 'Camera', textContent: '📹' })
+    const screen = el('button', { className: 'iconbtn', title: 'Share screen', textContent: '🖥' })
     const theme = el('button', { className: 'iconbtn', title: 'Theme', textContent: '◐' })
     const gear = el('button', { className: 'iconbtn', title: 'Settings', textContent: '⚙' })
-    const copy = el('button', { className: 'btn secondary', textContent: 'Copy invite' })
-    const leave = el('button', { className: 'btn ghost', textContent: 'Leave' })
+    const copy = el('button', { className: 'btn secondary', title: 'Copy invite link' }, '🔗 Invite')
+    const leave = el('button', { className: 'btn ghost', title: 'Leave room' }, '✕')
 
     const status = el('span', { className: 'pill', textContent: 'connecting…' })
     this.statusPill = status
 
     const divider = () => el('span', { className: 'divider' })
     const head = el('div', { className: 'cc-head' },
-      el('span', { className: 'title', textContent: (this.isPublic ? '# ' : '') + this.displayRoomName() }),
-      status,
-      el('span', { className: 'spacer' }),
-      el('div', { className: 'group' }, mic, cam, screen),  // media
+      el('div', { className: 'title-wrap' },
+        el('span', { className: 'title', title: this.displayRoomName(), textContent: (this.isPublic ? '# ' : '') + this.displayRoomName() }),
+        status
+      ),
+      el('div', { className: 'group' }, mic, cam, screen),
       divider(),
-      el('div', { className: 'group' }, copy),              // room sharing
-      divider(),
-      el('div', { className: 'group' }, theme, gear),       // preferences
-      divider(),
-      el('div', { className: 'group' }, leave))             // leave
+      el('div', { className: 'group' }, copy, theme, gear, leave)
+    )
 
     this.peersBar = el('div', { className: 'cc-peers' })
     this.mediaBar = el('div', { className: 'cc-media' })
     this.log = el('div', { className: 'cc-log' })
     this.typingEl = el('div', { className: 'typing' })
 
-    const ta = el('textarea', { placeholder: 'Message… (Markdown · Enter to send, Shift+Enter = new line)', rows: 1 })
-    this.input = ta
-    const to = el('select', { title: 'Recipient' })
-    this.recipient = to
-    const fileBtn = el('button', { className: 'iconbtn', title: 'Send file', textContent: '+' })
-    const fileIn = el('input', { type: 'file', className: 'hide', multiple: true })
-    const send = el('button', { className: 'btn', textContent: 'Send' })
+    // Compose Area (Mobile Optimized 2-tier layout)
+    const dmBadge = el('div', { className: 'dm-badge', title: 'Click to select recipient' },
+      el('span', { className: 'dm-lbl', textContent: '💬 Everyone' })
+    )
+    this.dmBadge = dmBadge
 
-    const compose = el('div', { className: 'cc-compose' },
+    const composeTop = el('div', { className: 'compose-top' }, dmBadge)
+
+    const ta = el('textarea', { placeholder: 'Message… (Enter to send, Shift+Enter for new line)', rows: 1 })
+    this.input = ta
+
+    const fileBtn = el('button', { className: 'compose-btn-file', title: 'Send file', type: 'button' }, '📎')
+    const fileIn = el('input', { type: 'file', className: 'hide', multiple: true })
+    
+    // SVG send arrow
+    const sendBtn = el('button', { className: 'compose-btn-send', title: 'Send', type: 'button' })
+    sendBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>`
+
+    const composeMain = el('div', { className: 'compose-main' },
+      fileBtn,
+      fileIn,
       ta,
-      el('div', { className: 'actions' }, to, fileBtn, fileIn, send))
+      sendBtn
+    )
+
+    const compose = el('div', { className: 'cc-compose' }, composeTop, composeMain)
 
     c.append(head, this.peersBar, this.mediaBar, this.log, this.typingEl, compose)
 
-    // UI events
+    // Events
     copy.onclick = async () => {
-      try { await navigator.clipboard.writeText(this.shareUrl); copy.textContent = 'Copied'; setTimeout(() => copy.textContent = 'Copy invite', 1500) }
+      try { await navigator.clipboard.writeText(this.shareUrl); copy.textContent = 'Copied!'; setTimeout(() => copy.textContent = '🔗 Invite', 1500) }
       catch { prompt('Copy the invite link:', this.shareUrl) }
     }
     leave.onclick = () => { location.hash = '' }
@@ -410,26 +568,28 @@ class ChatSession {
     screen.onclick = () => this.toggleScreen(screen)
     fileBtn.onclick = () => fileIn.click()
     fileIn.onchange = () => { [...fileIn.files].forEach(f => this.shareFile(f)); fileIn.value = '' }
-    send.onclick = () => this.sendCurrent()
+    sendBtn.onclick = () => this.sendCurrent()
+    dmBadge.onclick = () => this.openRecipientPicker()
+
     ta.addEventListener('input', () => { this.autosize(); this.notifyTyping() })
     ta.addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.sendCurrent() }
     })
-    this.refreshRecipients()
+
     this.renderPeers()
+    this.updateDmBadge()
   }
+
   displayRoomName() {
     return this.isPublic ? decodeURIComponent(this.roomId) : 'private room'
   }
-  autosize() { const t = this.input; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 160) + 'px' }
+  autosize() { const t = this.input; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 120) + 'px' }
 
   /* ---------- Trystero connection ---------- */
   connect(secret) {
-    // password = secret -> encrypts the session descriptions on the signaling channel (E2E).
     const room = joinRoom({ appId: APP_ID, password: secret }, this.roomId)
     this.room = room
 
-    // actions (names <=12 bytes as Trystero requires)
     const [sendMsg, getMsg] = room.makeAction('msg')
     const [sendMeta, getMeta] = room.makeAction('meta')
     const [sendHist, getHist] = room.makeAction('hist')
@@ -440,51 +600,74 @@ class ChatSession {
     const myMeta = () => ({ name: settings.name, color: settings.color, pubJwk: identity.pubJwk, sig: identity.sig })
 
     room.onPeerJoin(async peerId => {
-      this.addSystem(`${this.nameOf(peerId)} joined`)
-      sendMeta(myMeta(), peerId)                       // introduce yourself to the newcomer
-      // backfill: send the in-memory history to the new peer (they deduplicate)
+      if (!isBlocked(peerId)) this.addSystem(`${this.nameOf(peerId)} joined`)
+      sendMeta(myMeta(), peerId)
       if (this.messages.length) setTimeout(() => sendHist(this.messages.slice(-200), peerId), 700)
-      this.refreshRecipients(); this.updateStatus()
+      this.updateStatus()
+      this.renderPeers()
     })
+
     room.onPeerLeave(peerId => {
       const nm = this.nameOf(peerId)
+      const wasBlocked = isBlocked(peerId)
       this.peers.delete(peerId); this.typingPeers.delete(peerId)
-      this.addSystem(`${nm} left`); this.renderPeers(); this.refreshRecipients(); this.renderTyping(); this.updateStatus()
-      // remove their videos
+      if (!wasBlocked) this.addSystem(`${nm} left`)
+      if (this.targetRecipient === peerId) this.setRecipient('all')
+      this.renderPeers(); this.renderTyping(); this.updateStatus()
       this.mediaBar.querySelectorAll(`[data-peer="${CSS.escape(peerId)}"]`).forEach(n => n.remove())
     })
 
     getMeta(async (m, peerId) => {
       const v = await verifyPeer(peerId, m.pubJwk, m.sig)
       this.peers.set(peerId, { name: m.name || 'Anon', color: m.color || '#888', verified: v.ok, fingerprint: v.fingerprint })
-      this.renderPeers(); this.refreshRecipients()
+      this.renderPeers()
+      this.updateDmBadge()
     })
 
-    getMsg((data, peerId) => this.addMessage({ ...data, authorId: peerId }, false))
+    getMsg((data, peerId) => {
+      const peer = this.peers.get(peerId)
+      if (isBlocked(peerId, peer?.fingerprint)) return // Drop messages from blocked peers
+      this.addMessage({ ...data, authorId: peerId }, false)
+    })
 
     getHist((list, peerId) => {
-      for (const m of list) this.addMessage({ ...m, authorId: m.authorId || peerId }, false, true)
+      for (const m of list) {
+        const authId = m.authorId || peerId
+        const peer = this.peers.get(authId)
+        if (isBlocked(authId, peer?.fingerprint)) continue
+        this.addMessage({ ...m, authorId: authId }, false, true)
+      }
     })
 
     getTyp((isTyping, peerId) => {
+      const peer = this.peers.get(peerId)
+      if (isBlocked(peerId, peer?.fingerprint)) return
       if (isTyping) this.typingPeers.add(peerId); else this.typingPeers.delete(peerId)
       this.renderTyping()
     })
 
-    // incoming file: progress creates/updates the card, getFile completes it
-    onFileProgress((pct, peerId, meta) => this.upsertFileBubble(meta, peerId, false, pct))
+    onFileProgress((pct, peerId, meta) => {
+      const peer = this.peers.get(peerId)
+      if (isBlocked(peerId, peer?.fingerprint)) return
+      this.upsertFileBubble(meta, peerId, false, pct)
+    })
     getFile((bytes, peerId, meta) => {
+      const peer = this.peers.get(peerId)
+      if (isBlocked(peerId, peer?.fingerprint)) return
       const blob = new Blob([bytes], { type: meta.type || 'application/octet-stream' })
       this.completeFileBubble(meta, peerId, URL.createObjectURL(blob))
+      const sender = this.nameOf(peerId)
+      notifyIncomingMessage(`📎 File from ${sender}`, `${meta.name} (${fmtSize(meta.size)})`, meta.id)
     })
 
-    // incoming streams (camera/screen)
-    room.onPeerStream((stream, peerId, meta) => this.addVideo(peerId, stream, (meta && meta.kind) || 'cam'))
+    room.onPeerStream((stream, peerId, meta) => {
+      const peer = this.peers.get(peerId)
+      if (isBlocked(peerId, peer?.fingerprint)) return
+      this.addVideo(peerId, stream, (meta && meta.kind) || 'cam')
+    })
 
-    // first announce + status
     sendMeta(myMeta())
     this.updateStatus()
-    // if we stay alone for a while, let the user know
     setTimeout(() => { if (!this.peers.size) this.statusPill.textContent = 'waiting for peers…' }, 2500)
   }
 
@@ -492,20 +675,38 @@ class ChatSession {
     const n = this.peers.size
     this.statusPill.textContent = n ? `${n + 1} online` : 'waiting for peers…'
   }
-  nameOf(peerId) { return peerId === selfId ? settings.name : (this.peers.get(peerId)?.name || 'Anon-' + peerId.slice(0, 4)) }
+
+  nameOf(peerId) {
+    if (settings.anonymize) {
+      return peerId === selfId ? 'You (Anon-' + selfId.slice(0, 4) + ')' : 'Anon-' + peerId.slice(0, 4)
+    }
+    return peerId === selfId ? settings.name : (this.peers.get(peerId)?.name || 'Anon-' + peerId.slice(0, 4))
+  }
   colorOf(peerId) { return peerId === selfId ? settings.color : (this.peers.get(peerId)?.color || '#888') }
 
-  /* re-broadcast identity if I change name/color from settings */
   updateIdentity() {
     if (this._sendMeta) this._sendMeta({ name: settings.name, color: settings.color, pubJwk: identity.pubJwk, sig: identity.sig })
     this.renderPeers()
+    this.updateDmBadge()
+  }
+
+  onBlockChanged() {
+    for (const [id, p] of this.peers) {
+      if (isBlocked(id, p.fingerprint)) {
+        this.mediaBar.querySelectorAll(`[data-peer="${CSS.escape(id)}"]`).forEach(n => n.remove())
+        this.typingPeers.delete(id)
+      }
+    }
+    this.renderTyping()
+    this.renderPeers()
+    this.updateDmBadge()
   }
 
   /* ---------- messages ---------- */
   sendCurrent() {
     const text = this.input.value.trim()
     if (!text) return
-    const target = this.recipient.value
+    const target = this.targetRecipient
     const dm = target !== 'all'
     const msg = { id: uuid(), text, ts: nowTs(), dm, authorId: selfId, to: dm ? target : null }
     this.addMessage(msg, true)
@@ -521,20 +722,32 @@ class ChatSession {
 
     const node = el('div', { className: 'msg' + (mine ? ' me' : '') })
     const meta = el('div', { className: 'meta' })
-    meta.append(
-      el('span', { className: 'nm', textContent: this.nameOf(msg.authorId), style: `color:${this.colorOf(msg.authorId)}` }),
-      el('span', { className: 'ts', textContent: fmtTime(msg.ts) }))
+    
+    const nmSpan = el('span', {
+      className: 'nm',
+      textContent: this.nameOf(msg.authorId),
+      style: `color:${this.colorOf(msg.authorId)}`
+    })
+    if (!mine) nmSpan.onclick = () => openPeerModal(msg.authorId, this.peers.get(msg.authorId))
+
+    meta.append(nmSpan, el('span', { className: 'ts', textContent: fmtTime(msg.ts) }))
     if (msg.dm) meta.append(el('span', { className: 'dm', textContent: mine ? 'DM → ' + this.nameOf(msg.to) : 'DM' }))
+    
     const body = el('div', { className: 'body' })
     renderMarkdownInto(body, msg.text)
     node.append(meta, body)
     this.appendOrdered(node, msg.ts, fromHistory)
+
+    if (!mine && !fromHistory) {
+      const sender = this.nameOf(msg.authorId)
+      const title = msg.dm ? `🔒 DM from ${sender}` : `💬 ${sender} (# ${this.displayRoomName()})`
+      notifyIncomingMessage(title, msg.text.slice(0, 120), msg.id)
+    }
   }
 
   appendOrdered(node, ts, fromHistory) {
     node.dataset.ts = ts
     const atBottom = this.log.scrollHeight - this.log.scrollTop - this.log.clientHeight < 60
-    // ordered insertion (needed for backfill that arrives later)
     let next = null
     for (const child of this.log.children) {
       if (+child.dataset.ts > ts) { next = child; break }
@@ -559,42 +772,94 @@ class ChatSession {
   }
   stopTyping() { if (this.typingTimer) { clearTimeout(this.typingTimer); this.typingTimer = null; this._sendTyp && this._sendTyp(false) } }
   renderTyping() {
-    const names = [...this.typingPeers].map(p => this.nameOf(p))
+    const names = [...this.typingPeers].filter(p => !isBlocked(p, this.peers.get(p)?.fingerprint)).map(p => this.nameOf(p))
     this.typingEl.textContent = names.length === 0 ? ''
       : names.length === 1 ? `${names[0]} is typing…`
       : `${names.slice(0, 2).join(', ')}${names.length > 2 ? ' and others' : ''} are typing…`
   }
 
-  /* ---------- peers UI + DM recipient selector ---------- */
+  /* ---------- recipient & peers UI ---------- */
+  setRecipient(target) {
+    this.targetRecipient = target
+    this.updateDmBadge()
+  }
+
+  updateDmBadge() {
+    if (!this.dmBadge) return
+    if (this.targetRecipient === 'all') {
+      this.dmBadge.className = 'dm-badge'
+      this.dmBadge.innerHTML = '<span>💬 Everyone</span> <span style="font-size:11px;color:var(--muted2)">▼</span>'
+    } else {
+      const p = this.peers.get(this.targetRecipient)
+      const name = this.nameOf(this.targetRecipient)
+      this.dmBadge.className = 'dm-badge active'
+      this.dmBadge.innerHTML = `<span>🔒 DM: ${name}</span> <span class="close-dm" title="Back to everyone">✕</span>`
+      $('.close-dm', this.dmBadge)?.addEventListener('click', e => {
+        e.stopPropagation()
+        this.setRecipient('all')
+      })
+    }
+  }
+
+  openRecipientPicker() {
+    let pickerDlg = el('dialog')
+    const list = el('div', { className: 'dlg-b', style: 'padding:10px' })
+    
+    const optAll = el('button', { className: 'btn ghost', style: 'justify-content:flex-start; width:100%', textContent: '💬 Send to Everyone' })
+    optAll.onclick = () => { this.setRecipient('all'); pickerDlg.close() }
+    list.append(optAll)
+
+    for (const [id, p] of this.peers) {
+      if (isBlocked(id, p.fingerprint)) continue
+      const opt = el('button', { className: 'btn ghost', style: 'justify-content:flex-start; width:100%; gap:8px' },
+        el('span', { className: 'swatch', style: `width:10px;height:10px;border-radius:50%;background:${p.color}` }),
+        el('span', { textContent: '🔒 DM: ' + this.nameOf(id) })
+      )
+      opt.onclick = () => { this.setRecipient(id); pickerDlg.close() }
+      list.append(opt)
+    }
+
+    const cancel = el('button', { className: 'btn secondary', textContent: 'Cancel' })
+    cancel.onclick = () => pickerDlg.close()
+    pickerDlg.append(
+      el('div', { className: 'dlg-h', textContent: 'Select Recipient' }),
+      list,
+      el('div', { className: 'dlg-f' }, cancel)
+    )
+    document.body.append(pickerDlg)
+    pickerDlg.showModal()
+    pickerDlg.onclose = () => pickerDlg.remove()
+  }
+
   renderPeers() {
     this.peersBar.innerHTML = ''
     const me = el('div', { className: 'peer-chip' },
       el('span', { className: 'swatch', style: `background:${settings.color}` }),
-      el('span', { textContent: settings.name + ' (you)' }),
-      el('span', { className: 'fp mono', textContent: identity.fingerprint }))
+      el('span', { textContent: this.nameOf(selfId) }),
+      el('span', { className: 'fp mono', textContent: identity.fingerprint })
+    )
+    me.onclick = () => openSettings()
     this.peersBar.append(me)
+
     for (const [id, p] of this.peers) {
-      this.peersBar.append(el('div', { className: 'peer-chip' },
+      const blocked = isBlocked(id, p.fingerprint)
+      const chip = el('div', { className: 'peer-chip' + (blocked ? ' blocked' : '') },
         el('span', { className: 'swatch', style: `background:${p.color}` }),
-        el('span', { textContent: p.name }),
-        el('span', { className: 'vf ' + (p.verified ? 'ok' : 'no'), title: p.verified ? 'Verified identity' : 'Not verified', textContent: p.verified ? '✔ verified' : '⚠' }),
-        el('span', { className: 'fp mono', textContent: p.fingerprint })))
+        el('span', { textContent: (blocked ? '🚫 ' : '') + this.nameOf(id) }),
+        el('span', { className: 'vf ' + (p.verified ? 'ok' : 'no'), title: p.verified ? 'Verified identity' : 'Not verified', textContent: p.verified ? '✔' : '⚠' }),
+        el('span', { className: 'fp mono', textContent: p.fingerprint })
+      )
+      chip.onclick = () => openPeerModal(id, p)
+      this.peersBar.append(chip)
     }
   }
-  refreshRecipients() {
-    const prev = this.recipient.value
-    this.recipient.innerHTML = ''
-    this.recipient.append(el('option', { value: 'all', textContent: 'Everyone' }))
-    for (const [id, p] of this.peers) this.recipient.append(el('option', { value: id, textContent: 'DM · ' + p.name }))
-    if ([...this.recipient.options].some(o => o.value === prev)) this.recipient.value = prev
-  }
 
-  /* ---------- files (encrypted by the Trystero channel, automatic chunking) ---------- */
+  /* ---------- files ---------- */
   async shareFile(file) {
     const meta = { id: uuid(), name: file.name, type: file.type, size: file.size }
     this.upsertFileBubble(meta, selfId, true, 0)
     const buf = new Uint8Array(await file.arrayBuffer())
-    const target = this.recipient.value === 'all' ? null : this.recipient.value
+    const target = this.targetRecipient === 'all' ? null : this.targetRecipient
     await this._sendFile(buf, target, meta, pct => this.upsertFileBubble(meta, selfId, true, pct))
     this.completeFileBubble(meta, selfId, URL.createObjectURL(file))
   }
@@ -626,11 +891,10 @@ class ChatSession {
     $('.fmeta', node).append(link)
   }
 
-  /* ---------- audio/video + livestream ---------- */
+  /* ---------- media / calls ---------- */
   async toggleUserMedia(kind, btn) {
     try {
       if (this.localStream && this.localStream.getTracks().some(t => t.kind === kind)) {
-        // turn off that kind of track
         this.localStream.getTracks().filter(t => t.kind === kind).forEach(t => { t.stop(); this.localStream.removeTrack(t) })
         btn.classList.remove('on')
         if (this.localStream.getTracks().length === 0) {
@@ -646,7 +910,7 @@ class ChatSession {
         if (kind === 'video') this.addVideo(selfId, this.localStream, 'cam', true)
       } else {
         fresh.getTracks().forEach(t => this.localStream.addTrack(t))
-        this.room.addStream(this.localStream, null, { kind: 'cam' }) // re-announce with the new track
+        this.room.addStream(this.localStream, null, { kind: 'cam' })
         if (kind === 'video') this.addVideo(selfId, this.localStream, 'cam', true)
       }
     } catch (e) { this.addSystem('Media denied: ' + e.message) }
@@ -686,8 +950,61 @@ class ChatSession {
 }
 
 /* =======================================================================
+   Peer Action Modal (DM, Mute/Block, Info)
+   ======================================================================= */
+function openPeerModal(peerId, peerData) {
+  let pDlg = el('dialog')
+  const name = current?.session?.nameOf(peerId) || peerData?.name || peerId.slice(0, 6)
+  const fp = peerData?.fingerprint || ''
+  const blocked = isBlocked(peerId, fp)
+
+  const dmBtn = el('button', { className: 'btn secondary', style: 'width:100%', textContent: '🔒 Send Direct Message (DM)' })
+  dmBtn.onclick = () => {
+    current?.session?.setRecipient(peerId)
+    pDlg.close()
+  }
+
+  const blockBtn = el('button', {
+    className: 'btn ' + (blocked ? 'secondary' : 'danger'),
+    style: 'width:100%',
+    textContent: blocked ? '✓ Unblock this peer' : '🚫 Mute / Block this peer'
+  })
+  blockBtn.onclick = () => {
+    if (blocked) {
+      unblockPeer(peerId)
+      if (fp) unblockPeer(fp)
+    } else {
+      blockPeer(peerId, peerData?.name || name, fp)
+    }
+    pDlg.close()
+  }
+
+  const closeBtn = el('button', { className: 'btn ghost', textContent: 'Close' })
+  closeBtn.onclick = () => pDlg.close()
+
+  pDlg.append(
+    el('div', { className: 'dlg-h', textContent: name }),
+    el('div', { className: 'dlg-b' },
+      el('div', { style: 'font-size:13px; color:var(--muted)' },
+        el('div', {}, 'ID: ', el('span', { className: 'mono' }, peerId)),
+        fp ? el('div', { style: 'margin-top:4px' }, 'Fingerprint: ', el('span', { className: 'mono' }, fp)) : null,
+        el('div', { style: 'margin-top:4px' }, 'Status: ', el('span', { style: `color:var(${peerData?.verified ? '--ok' : '--warn'})` }, peerData?.verified ? '✔ Verified identity' : '⚠ Unverified'))
+      ),
+      el('div', { style: 'display:flex; flex-direction:column; gap:8px; margin-top:8px' },
+        dmBtn,
+        blockBtn
+      )
+    ),
+    el('div', { className: 'dlg-f' }, closeBtn)
+  )
+
+  document.body.append(pDlg)
+  pDlg.showModal()
+  pDlg.onclose = () => pDlg.remove()
+}
+
+/* =======================================================================
    Web Component <chat-room room="..." [secret="..."]>
-   Same code as the page, embeddable elsewhere (or via <iframe>).
    ======================================================================= */
 class ChatRoomElement extends HTMLElement {
   connectedCallback() {
@@ -702,9 +1019,7 @@ class ChatRoomElement extends HTMLElement {
 customElements.define('chat-room', ChatRoomElement)
 
 /* =======================================================================
-   Router (hash) + home screen
-   #/r/<name>            -> public room (key = name)
-   #/p/<id>/<secret>     -> private room (secret in the fragment, never on the server)
+   Router + Home screen
    ======================================================================= */
 const app = $('#app')
 let current = null
@@ -767,8 +1082,8 @@ function renderHome() {
     el('div', { className: 'sub mono', style: 'margin-top:8px', textContent: 'fingerprint: ' + identity.fingerprint }))
 
   const feats = el('ul', { className: 'features' })
-  ;['Multi-peer + DM', 'Markdown + syntax highlight', 'Audio / video / screen', 'Livestream', 'Encrypted files', 'History backfill',
-    'Peer verification (public key)', 'E2E (WebRTC + password)', 'No persistence', 'Light/dark themes', 'Web Component <chat-room>'
+  ;['Multi-peer + DM', 'Client-side Mute/Block', 'Streamer Mode (Anon)', 'Browser notifications', 'Markdown + highlight',
+    'Audio / video / screen', 'Encrypted files', 'History backfill', 'Peer verification', 'E2E (WebRTC + password)', 'Light/dark themes', 'Mobile responsive'
   ].forEach(f => feats.append(el('li', { textContent: '✓ ' + f })))
 
   const foot = el('div', { className: 'foot' },
@@ -778,31 +1093,86 @@ function renderHome() {
   app.append(home)
 }
 
-/* ---------------- shared settings panel (dialog) ---------------- */
+/* ---------------- Settings & Moderation Dialog ---------------- */
 let dlg
 function openSettings() {
-  if (!dlg) {
-    dlg = el('dialog')
-    const nm = el('input', { type: 'text', value: settings.name })
-    const col = el('input', { type: 'color', value: settings.color })
-    const close = el('button', { className: 'btn secondary', textContent: 'Close' })
-    const save = el('button', { className: 'btn', textContent: 'Save' })
-    dlg.append(
-      el('div', { className: 'dlg-h', textContent: 'Settings' }),
-      el('div', { className: 'dlg-b' },
-        el('label', { className: 'fld' }, 'Name', nm),
-        el('label', { className: 'fld' }, 'Color', col),
-        el('div', { className: 'sub mono', textContent: 'fingerprint: ' + identity.fingerprint })),
-      el('div', { className: 'dlg-f' }, close, save))
-    close.onclick = () => dlg.close()
-    save.onclick = () => {
-      settings.name = nm.value.trim() || settings.name; settings.color = col.value; saveSettings()
-      current?.session?.updateIdentity?.()
-      dlg.close()
+  if (dlg) dlg.remove()
+  dlg = el('dialog')
+  
+  const nm = el('input', { type: 'text', value: settings.name })
+  const col = el('input', { type: 'color', value: settings.color })
+  const notifCheck = el('input', { type: 'checkbox', checked: settings.notifications })
+  const notifLabel = el('label', { className: 'checkbox-row' }, notifCheck, el('span', {}, '🔔 Browser Notifications'))
+  const soundCheck = el('input', { type: 'checkbox', checked: settings.sound })
+  const soundLabel = el('label', { className: 'checkbox-row' }, soundCheck, el('span', {}, '🔊 Notification Sound'))
+
+  const anonCheck = el('input', { type: 'checkbox', checked: settings.anonymize })
+  const anonLabel = el('label', { className: 'checkbox-row' }, anonCheck, el('span', {}, '🕶 Anonymize all nicknames (Streamer Mode)'))
+
+  notifCheck.onchange = async () => {
+    if (notifCheck.checked) {
+      await requestNotificationPermission()
     }
-    document.body.append(dlg)
   }
+
+  const blockedContainer = el('div', { className: 'blocked-list' })
+  function renderBlocked() {
+    blockedContainer.innerHTML = ''
+    if (settings.blocked.length === 0) {
+      blockedContainer.append(el('div', { style: 'font-size:12px; color:var(--muted2); font-style:italic' }, 'No blocked users'))
+      return
+    }
+    settings.blocked.forEach(b => {
+      const item = el('div', { className: 'blocked-item' },
+        el('span', { textContent: b.name + (b.fingerprint ? ` (${b.fingerprint.slice(0, 8)}…)` : '') }),
+        el('button', { className: 'btn ghost', style: 'padding:2px 8px; font-size:11px; min-height:auto', textContent: 'Unblock' })
+      )
+      $('button', item).onclick = () => {
+        unblockPeer(b.id)
+        if (b.fingerprint) unblockPeer(b.fingerprint)
+        renderBlocked()
+      }
+      blockedContainer.append(item)
+    })
+  }
+  renderBlocked()
+
+  const close = el('button', { className: 'btn secondary', textContent: 'Close' })
+  const save = el('button', { className: 'btn', textContent: 'Save' })
+  
+  dlg.append(
+    el('div', { className: 'dlg-h', textContent: 'Settings & Privacy' }),
+    el('div', { className: 'dlg-b' },
+      el('label', { className: 'fld' }, 'Your Name', nm),
+      el('label', { className: 'fld' }, 'Your Color', col),
+      notifLabel,
+      soundLabel,
+      anonLabel,
+      el('div', { style: 'border-top:1px solid var(--border); padding-top:10px; margin-top:4px' },
+        el('div', { style: 'font-size:13px; font-weight:500; margin-bottom:6px' }, '🚫 Blocked / Muted Peers:'),
+        blockedContainer
+      ),
+      el('div', { className: 'sub mono', style: 'font-size:11px; margin-top:6px' }, 'Your fingerprint: ' + identity.fingerprint)
+    ),
+    el('div', { className: 'dlg-f' }, close, save)
+  )
+
+  close.onclick = () => dlg.close()
+  save.onclick = () => {
+    settings.name = nm.value.trim() || settings.name
+    settings.color = col.value
+    settings.anonymize = anonCheck.checked
+    settings.notifications = notifCheck.checked
+    settings.sound = soundCheck.checked
+    saveSettings()
+    current?.session?.updateIdentity?.()
+    current?.session?.renderPeers?.()
+    dlg.close()
+  }
+
+  document.body.append(dlg)
   dlg.showModal()
+  dlg.onclose = () => dlg.remove()
 }
 
 /* ---------------- startup ---------------- */

@@ -25,7 +25,11 @@ For real P2P, open the invite link in two different browsers/devices.
 - **Public** rooms (key = name) and **private** rooms (random id+secret in the link)
 - **E2E**: WebRTC DTLS + encryption of the session descriptions with the room password
 - **Peer verification** via public-key cryptography (ECDSA P-256 + fingerprint)
-- **No message persistence** to disk (only name/color/theme in localStorage)
+- **Client-side Moderation**: Mute & Block peers (hides messages, files, video streams and typing)
+- **Browser Notifications & Audio Chime**: Native desktop notifications when receiving messages or files in background, with unread tab counter
+- **Privacy / Streamer Mode**: Option to anonymize all nicknames
+- **Mobile-friendly**: Responsive 2-tier compose box with full-width textarea and horizontal peer scroll
+- **No message persistence** to disk (only name/color/theme/blocklist in localStorage)
 - Light/dark themes
 - Embeddable as a **Web Component**: `<chat-room room="name">` or `<chat-room room="id" secret="...">`
 
