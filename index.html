@@ -83,8 +83,9 @@
   a{color:var(--accent)}
   #app{height:100%; height:100dvh; overflow:hidden; display:flex; flex-direction:column}
   ::selection{background:color-mix(in srgb,var(--accent) 35%,transparent)}
-  ::-webkit-scrollbar{width:8px;height:8px}
-  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:99px; border:2px solid var(--bg)}
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--border) 70%,transparent); border-radius:99px}
+  ::-webkit-scrollbar-thumb:hover{background:var(--border)}
   ::-webkit-scrollbar-track{background:transparent}
 
   /* state-layer hover/active per MD3 */
@@ -142,28 +143,39 @@
   
   /* Top header */
   .cc-head{
-    display:flex; align-items:center; gap:8px; padding:8px 12px;
+    display:flex; align-items:center; gap:8px; padding:max(8px, env(safe-area-inset-top)) 10px 8px;
     background:var(--panel); box-shadow:var(--shadow1); position:relative; z-index:3;
-    min-height:52px; flex-shrink:0;
+    min-height:52px; flex-shrink:0; overflow:hidden;
   }
-  .cc-head .title-wrap{display:flex; align-items:center; gap:8px; min-width:0; flex:1 1 auto}
+  .cc-head .title-wrap{
+    display:flex; flex-direction:column; justify-content:center;
+    min-width:0; flex:1 1 auto; gap:2px; overflow:hidden;
+  }
   .cc-head .title{
-    font-weight:500; font-size:16px; letter-spacing:.1px; white-space:nowrap;
-    overflow:hidden; text-overflow:ellipsis; max-width:200px;
+    font-weight:600; font-size:15px; letter-spacing:.1px; white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis; max-width:100%; line-height:1.2;
   }
-  .cc-head .group{display:flex; align-items:center; gap:4px; flex-shrink:0; flex-wrap:wrap}
+  .cc-head .group{display:flex; align-items:center; gap:4px; flex-shrink:0; flex-wrap:nowrap}
   .cc-head .divider{width:1px; align-self:stretch; min-height:24px; background:var(--border); margin:0 2px}
   .pill{
-    font-size:11px; font-weight:500; color:var(--on-secondary-container); background:var(--secondary-container);
-    border:none; padding:4px 10px; border-radius:999px; white-space:nowrap; flex-shrink:0;
+    font-size:10px; font-weight:500; color:var(--on-secondary-container); background:var(--secondary-container);
+    border:none; padding:2px 8px; border-radius:999px; white-space:nowrap; width:fit-content;
+    max-width:100%; overflow:hidden; text-overflow:ellipsis; line-height:1.3;
   }
   .iconbtn{
     background:transparent; border:none; color:var(--muted); border-radius:50%;
-    width:38px; height:38px; display:grid; place-items:center; font-size:16px; flex-shrink:0;
+    width:36px; height:36px; display:grid; place-items:center; font-size:16px; flex-shrink:0;
   }
   .iconbtn:hover{background:color-mix(in srgb,var(--text) 8%,transparent); color:var(--text)}
   .iconbtn.on{background:var(--accent-container); color:var(--on-accent-container)}
   .iconbtn.danger.on{background:var(--error); color:#fff}
+  .btn.btn-copy{
+    padding:6px 12px; min-height:36px; font-size:13px; gap:4px;
+  }
+  .btn.btn-leave{
+    padding:0; width:34px; height:34px; min-height:34px; border-radius:50%;
+    display:grid; place-items:center; font-size:15px;
+  }
 
   /* Peers bar (horizontal scroll on mobile) */
   .cc-peers{
@@ -207,7 +219,7 @@
   .msg .meta .nm:hover{text-decoration:underline}
   .msg .meta .ts{color:var(--muted2)}
   .msg.me .meta .ts{color:color-mix(in srgb,var(--on-bubble-me) 65%,transparent)}
-  .msg .dm{font-size:10px; font-weight:500; color:var(--on-accent-container); background:var(--accent-container); border:none; border-radius:999px; padding:1px 6px}
+  .msg .dm{font-size:10px; font-weight:500; color:var(--on-accent-container); background:var(--accent-container); border:none; border-radius:999px; padding:1px 6px; margin-left:2px}
   .msg .body{word-wrap:break-word; overflow-wrap:anywhere; font-size:14px}
   .msg .body p{margin:.25em 0}
   .msg .body pre{background:var(--panel2); color:var(--text); padding:10px; border-radius:10px; overflow:auto; border:none; margin:.4em 0}
@@ -258,6 +270,12 @@
   .cc-compose textarea{
     flex:1; min-width:0; resize:none; max-height:120px; min-height:42px;
     border-radius:20px; padding:10px 14px; font-size:15px; line-height:1.4;
+    box-sizing:border-box;
+  }
+  .cc-compose textarea::placeholder{
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
   .compose-actions{
     display:flex; gap:6px; align-items:center; flex-shrink:0;
@@ -265,11 +283,12 @@
   .compose-btn-file{
     width:42px; height:42px; border-radius:50%; background:var(--panel2);
     color:var(--text); border:none; display:grid; place-items:center; font-size:18px; flex-shrink:0;
+    cursor:pointer;
   }
   .compose-btn-send{
     width:42px; height:42px; border-radius:50%; background:var(--accent);
     color:var(--on-accent); border:none; display:grid; place-items:center; font-size:18px; flex-shrink:0;
-    box-shadow:var(--shadow1); padding:0;
+    box-shadow:var(--shadow1); padding:0; cursor:pointer;
   }
   .compose-btn-send svg{width:20px; height:20px; fill:currentColor; transform:translateX(1px)}
 
@@ -277,6 +296,7 @@
   dialog{
     border:none; border-radius:24px; background:var(--panel); color:var(--text);
     padding:0; max-width:400px; width:90%; box-shadow:var(--shadow3);
+    margin:auto;
   }
   dialog::backdrop{background:var(--scrim); backdrop-filter:blur(2px)}
   dialog[open]{animation:dlg-in .18s ease-out}
@@ -294,6 +314,44 @@
   .blocked-item{
     display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 10px;
     background:var(--panel2); border-radius:10px; font-size:12px;
+  }
+
+  /* Responsive Breakpoints */
+  @media (min-width: 601px) {
+    .cc-head{padding:8px 14px; gap:10px}
+    .cc-head .title-wrap{flex-direction:row; align-items:center; gap:8px}
+    .cc-head .title{font-size:16px; max-width:240px}
+    .pill{font-size:11px; padding:3px 9px}
+    .iconbtn{width:38px; height:38px}
+    .btn.btn-copy{padding:8px 16px; min-height:38px; font-size:14px}
+  }
+
+  @media (max-width: 600px) {
+    .btn-screen{display:none !important}
+    .cc-head .divider{display:none !important}
+    .btn.btn-copy{
+      padding:0; width:36px; height:36px; min-height:36px; border-radius:50%;
+      display:grid; place-items:center;
+    }
+    .btn.btn-copy .invite-text{display:none}
+    .peer-chip{padding:4px 8px; font-size:11px; gap:4px}
+    .peer-chip .name{max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    .peer-chip .fp{display:none}
+    .cc-compose{padding:6px 10px max(10px, env(safe-area-inset-bottom)); gap:4px}
+    .compose-main{gap:6px}
+    .compose-btn-file, .compose-btn-send{width:40px; height:40px; font-size:16px}
+    .cc-compose textarea{min-height:40px; padding:9px 14px; font-size:15px; border-radius:20px}
+    .cc-log{padding:10px 10px; gap:6px; scrollbar-width:thin}
+    ::-webkit-scrollbar{width:3px; height:3px}
+    .msg{max-width:88%}
+    .home{padding:20px 14px; gap:12px}
+    .features{grid-template-columns:1fr; gap:6px}
+    .row{flex-direction:column; align-items:stretch}
+    .row .btn{width:100%}
+    dialog{width:calc(100% - 24px); max-width:100%; border-radius:20px}
+    .dlg-h{padding:14px 16px 6px; font-size:17px}
+    .dlg-b{padding:10px 16px; max-height:calc(80dvh - 100px); -webkit-overflow-scrolling:touch}
+    .dlg-f{padding:8px 16px 14px}
   }
 </style>
 </head>
@@ -498,13 +556,16 @@ class ChatSession {
     c.innerHTML = ''
     c.classList.add('cc')
 
-    const mic = el('button', { className: 'iconbtn', title: 'Microphone', textContent: '🎙' })
-    const cam = el('button', { className: 'iconbtn', title: 'Camera', textContent: '📹' })
-    const screen = el('button', { className: 'iconbtn', title: 'Share screen', textContent: '🖥' })
-    const theme = el('button', { className: 'iconbtn', title: 'Theme', textContent: '◐' })
-    const gear = el('button', { className: 'iconbtn', title: 'Settings', textContent: '⚙' })
-    const copy = el('button', { className: 'btn secondary', title: 'Copy invite link' }, '🔗 Invite')
-    const leave = el('button', { className: 'btn ghost', title: 'Leave room' }, '✕')
+    const mic = el('button', { className: 'iconbtn btn-mic', title: 'Microphone', textContent: '🎙' })
+    const cam = el('button', { className: 'iconbtn btn-cam', title: 'Camera', textContent: '📹' })
+    const screen = el('button', { className: 'iconbtn btn-screen', title: 'Share screen', textContent: '🖥' })
+    const theme = el('button', { className: 'iconbtn btn-theme', title: 'Theme', textContent: '◐' })
+    const gear = el('button', { className: 'iconbtn btn-gear', title: 'Settings', textContent: '⚙' })
+    const copy = el('button', { className: 'btn secondary btn-copy', title: 'Copy invite link' },
+      el('span', { className: 'invite-icon', textContent: '🔗' }),
+      el('span', { className: 'invite-text', textContent: ' Invite' })
+    )
+    const leave = el('button', { className: 'btn ghost btn-leave', title: 'Leave room' }, '✕')
 
     const status = el('span', { className: 'pill', textContent: 'connecting…' })
     this.statusPill = status
@@ -515,9 +576,9 @@ class ChatSession {
         el('span', { className: 'title', title: this.displayRoomName(), textContent: (this.isPublic ? '# ' : '') + this.displayRoomName() }),
         status
       ),
-      el('div', { className: 'group' }, mic, cam, screen),
+      el('div', { className: 'group media-group' }, mic, cam, screen),
       divider(),
-      el('div', { className: 'group' }, copy, theme, gear, leave)
+      el('div', { className: 'group actions-group' }, copy, theme, gear, leave)
     )
 
     this.peersBar = el('div', { className: 'cc-peers' })
@@ -533,8 +594,15 @@ class ChatSession {
 
     const composeTop = el('div', { className: 'compose-top' }, dmBadge)
 
-    const ta = el('textarea', { placeholder: 'Message… (Enter to send, Shift+Enter for new line)', rows: 1 })
+    const isMobile = () => window.innerWidth <= 600
+    const ta = el('textarea', { placeholder: isMobile() ? 'Message…' : 'Message… (Enter to send, Shift+Enter for new line)', rows: 1 })
     this.input = ta
+
+    const updatePlaceholder = () => {
+      ta.placeholder = isMobile() ? 'Message…' : 'Message… (Enter to send, Shift+Enter for new line)'
+    }
+    this._onResize = updatePlaceholder
+    window.addEventListener('resize', this._onResize)
 
     const fileBtn = el('button', { className: 'compose-btn-file', title: 'Send file', type: 'button' }, '📎')
     const fileIn = el('input', { type: 'file', className: 'hide', multiple: true })
@@ -556,8 +624,24 @@ class ChatSession {
 
     // Events
     copy.onclick = async () => {
-      try { await navigator.clipboard.writeText(this.shareUrl); copy.textContent = 'Copied!'; setTimeout(() => copy.textContent = '🔗 Invite', 1500) }
-      catch { prompt('Copy the invite link:', this.shareUrl) }
+      try {
+        await navigator.clipboard.writeText(this.shareUrl)
+        const origHtml = copy.innerHTML
+        copy.title = 'Copied!'
+        copy.classList.add('copied')
+        if (window.innerWidth > 600) {
+          copy.innerHTML = '<span>✓</span> <span class="invite-text">Copied!</span>'
+        } else {
+          copy.innerHTML = '<span>✓</span>'
+        }
+        setTimeout(() => {
+          copy.title = 'Copy invite link'
+          copy.classList.remove('copied')
+          copy.innerHTML = origHtml
+        }, 1500)
+      } catch {
+        prompt('Copy the invite link:', this.shareUrl)
+      }
     }
     leave.onclick = () => { location.hash = '' }
     theme.onclick = () => { settings.theme = settings.theme === 'dark' ? 'light' : 'dark'; saveSettings(); applyTheme() }
@@ -811,8 +895,8 @@ class ChatSession {
     for (const [id, p] of this.peers) {
       if (isBlocked(id, p.fingerprint)) continue
       const opt = el('button', { className: 'btn ghost', style: 'justify-content:flex-start; width:100%; gap:8px' },
-        el('span', { className: 'swatch', style: `width:10px;height:10px;border-radius:50%;background:${p.color}` }),
-        el('span', { textContent: '🔒 DM: ' + this.nameOf(id) })
+        el('span', { className: 'swatch', style: `width:10px;height:10px;border-radius:50%;background:${p.color};flex-shrink:0` }),
+        el('span', { style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap', textContent: '🔒 DM: ' + this.nameOf(id) })
       )
       opt.onclick = () => { this.setRecipient(id); pickerDlg.close() }
       list.append(opt)
@@ -834,7 +918,7 @@ class ChatSession {
     this.peersBar.innerHTML = ''
     const me = el('div', { className: 'peer-chip' },
       el('span', { className: 'swatch', style: `background:${settings.color}` }),
-      el('span', { textContent: this.nameOf(selfId) }),
+      el('span', { className: 'name', textContent: this.nameOf(selfId) }),
       el('span', { className: 'fp mono', textContent: identity.fingerprint })
     )
     me.onclick = () => openSettings()
@@ -844,7 +928,7 @@ class ChatSession {
       const blocked = isBlocked(id, p.fingerprint)
       const chip = el('div', { className: 'peer-chip' + (blocked ? ' blocked' : '') },
         el('span', { className: 'swatch', style: `background:${p.color}` }),
-        el('span', { textContent: (blocked ? '🚫 ' : '') + this.nameOf(id) }),
+        el('span', { className: 'name', textContent: (blocked ? '🚫 ' : '') + this.nameOf(id) }),
         el('span', { className: 'vf ' + (p.verified ? 'ok' : 'no'), title: p.verified ? 'Verified identity' : 'Not verified', textContent: p.verified ? '✔' : '⚠' }),
         el('span', { className: 'fp mono', textContent: p.fingerprint })
       )
@@ -942,6 +1026,7 @@ class ChatSession {
   }
 
   destroy() {
+    if (this._onResize) window.removeEventListener('resize', this._onResize)
     try { this.localStream?.getTracks().forEach(t => t.stop()) } catch {}
     try { this.screenStream?.getTracks().forEach(t => t.stop()) } catch {}
     try { this.room?.leave() } catch {}
@@ -984,7 +1069,7 @@ function openPeerModal(peerId, peerData) {
   pDlg.append(
     el('div', { className: 'dlg-h', textContent: name }),
     el('div', { className: 'dlg-b' },
-      el('div', { style: 'font-size:13px; color:var(--muted)' },
+      el('div', { style: 'font-size:13px; color:var(--muted); word-break:break-all' },
         el('div', {}, 'ID: ', el('span', { className: 'mono' }, peerId)),
         fp ? el('div', { style: 'margin-top:4px' }, 'Fingerprint: ', el('span', { className: 'mono' }, fp)) : null,
         el('div', { style: 'margin-top:4px' }, 'Status: ', el('span', { style: `color:var(${peerData?.verified ? '--ok' : '--warn'})` }, peerData?.verified ? '✔ Verified identity' : '⚠ Unverified'))
@@ -1151,7 +1236,7 @@ function openSettings() {
         el('div', { style: 'font-size:13px; font-weight:500; margin-bottom:6px' }, '🚫 Blocked / Muted Peers:'),
         blockedContainer
       ),
-      el('div', { className: 'sub mono', style: 'font-size:11px; margin-top:6px' }, 'Your fingerprint: ' + identity.fingerprint)
+      el('div', { className: 'sub mono', style: 'font-size:11px; margin-top:6px; word-break:break-all' }, 'Your fingerprint: ' + identity.fingerprint)
     ),
     el('div', { className: 'dlg-f' }, close, save)
   )
